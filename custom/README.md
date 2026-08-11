@@ -1,8 +1,10 @@
 # Custom Plausible UI workspace
 
-This branch starts at the exact Plausible Analytics source tag `v3.2.1`. It is
-the source for a future custom Community Edition image. Production continues to
-run the official image until the deployment repository is explicitly changed.
+This branch starts at the exact Plausible Analytics source tag `v3.2.1`. It is the
+source for the custom Community Edition image currently deployed by the surrounding
+deployment repository. Production runs source commit
+`e3d17a4f84bc90ac2753e56ca7988af69a680d64` via an immutable image digest. That
+baseline contains no product UI changes.
 
 No production credentials, analytics data, database dumps, or server copies
 belong in this repository.
@@ -18,6 +20,10 @@ belong in this repository.
 The surrounding deployment repository pins this repository as the `source/`
 Git submodule. Work and commit inside `source/`; update the outer submodule
 pointer only for a reviewed source revision.
+
+Read the root `AGENTS.md` in this source repository before making changes. The
+parent deployment repository remains authoritative for production topology,
+backup, deployment approval, verification, and rollback.
 
 ## Local development
 

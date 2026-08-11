@@ -1,0 +1,141 @@
+#!/bin/sh
+set -eu
+
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+COMPOSE_FILE="$ROOT/custom/compose.dev.yml"
+DEV_PORT=${PLAUSIBLE_DEV_PORT:-8100}
+
+compose() {
+  (cd "$ROOT" && docker compose -f "$COMPOSE_FILE" "$@")
+}
+
+require_docker() {
+  if ! docker info >/dev/null 2>&1; then
+    echo "Docker is not running. Start Colima or Docker Desktop first." >&2
+    exit 1
+  fi
+}
+
+run_without_server() {
+  compose stop plausible >/dev/null
+
+  restore_server() {
+    compose up -d plausible >/dev/null 2>&1 || true
+  }
+
+  trap restore_server EXIT HUP INT TERM
+
+  set +e
+  compose run --rm --no-deps plausible "$@"
+  result=$?
+  set -e
+
+  restore_server
+  trap - EXIT HUP INT TERM
+  return "$result"
+}
+
+wait_for_app() {
+  attempt=0
+  while [ "$attempt" -lt 120 ]; do
+    if curl -fsS "http://127.0.0.1:$DEV_PORT/api/system/health/ready" >/dev/null 2>&1; then
+      echo "Plausible is ready at http://localhost:$DEV_PORT"
+      return 0
+    fi
+
+    attempt=$((attempt + 1))
+    sleep 2
+  done
+
+  echo "Plausible did not become ready. Inspect ./custom/dev logs." >&2
+  return 1
+}
+
+usage() {
+  cat <<'EOF'
+Usage: ./custom/dev <command>
+
+Commands:
+  up           Build and start the isolated local development stack
+  wait         Wait until the local readiness endpoint responds
+  status       Show the local stack status
+  logs         Follow Plausible development logs
+  seed         Add the upstream dummy account and analytics dataset once
+  check        Run UI formatting, linting, and type checks
+  test         Run the full frontend test suite (resource-intensive)
+  shell        Open a shell in the development container
+  build-image  Build the production-style CE image locally
+  down         Stop the local stack without deleting its data
+EOF
+}
+
+command=${1:-help}
+
+case "$command" in
+  up)
+    require_docker
+    compose up -d --build
+    echo "The first bootstrap continues inside the Plausible container."
+    echo "Run ./custom/dev wait, then open http://localhost:$DEV_PORT."
+    ;;
+  wait)
+    require_docker
+    wait_for_app
+    ;;
+  status)
+    require_docker
+    compose ps
+    ;;
+  logs)
+    require_docker
+    compose logs --tail 200 -f plausible
+    ;;
+  seed)
+    require_docker
+    if compose run --rm --no-deps plausible \
+      test -f /var/lib/plausible-dev/seeded >/dev/null 2>&1; then
+      echo "Demo data already exists. Log in with user@plausible.test / plausible"
+      exit 0
+    fi
+    run_without_server /bin/sh -c '
+      . ./custom/dev-config.sh &&
+      mix run --no-start custom/seed-light.exs &&
+      touch /var/lib/plausible-dev/seeded
+    '
+    echo "Log in with user@plausible.test / plausible"
+    ;;
+  check)
+    require_docker
+    run_without_server /bin/sh -c '
+      npm run generate-types --prefix assets &&
+      npm run typecheck --prefix assets &&
+      npm run lint --prefix assets &&
+      npm run check-format --prefix assets &&
+      mix format --check-formatted
+    '
+    ;;
+  test)
+    require_docker
+    run_without_server npm run test --prefix assets -- --runInBand
+    ;;
+  shell)
+    require_docker
+    compose exec plausible /bin/sh
+    ;;
+  build-image)
+    require_docker
+    (cd "$ROOT" && docker build --build-arg MIX_ENV=ce -t plausible-custom:local .)
+    ;;
+  down)
+    require_docker
+    compose down
+    ;;
+  help|-h|--help)
+    usage
+    ;;
+  *)
+    echo "Unknown command: $command" >&2
+    usage >&2
+    exit 2
+    ;;
+esac

@@ -1,0 +1,25 @@
+ARG ALPINE_VERSION=3.22.2
+
+FROM hexpm/elixir:1.19.4-erlang-27.3.4.6-alpine-${ALPINE_VERSION}
+
+ENV MIX_ENV=ce_dev \
+    NODE_ENV=development
+
+RUN apk add --no-cache \
+      brotli \
+      ca-certificates \
+      gcc \
+      git \
+      inotify-tools \
+      libc-dev \
+      make \
+      "nodejs-current=23.11.1-r0" \
+      npm \
+      python3 \
+      wget \
+    && mix local.hex --force \
+    && mix local.rebar --force
+
+WORKDIR /app
+
+CMD ["./custom/dev-entrypoint.sh"]

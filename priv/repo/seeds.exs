@@ -19,21 +19,27 @@ words =
 
 user = new_user(email: "user@plausible.test", password: "plausible")
 
+{primary_days, secondary_days, imported_days, primary_visitors, secondary_visitors} =
+  case System.get_env("PLAUSIBLE_SEED_PROFILE", "full") do
+    "light" -> {21, 14, 7, {2, 6}, {1, 4}}
+    "full" -> {720, 320, 180, {50, 150}, {10, 70}}
+  end
+
 native_stats_range =
   Date.range(
-    Date.add(Date.utc_today(), -720),
+    Date.add(Date.utc_today(), -primary_days),
     Date.utc_today()
   )
 
 native_stats_range2 =
   Date.range(
-    Date.add(Date.utc_today(), -320),
+    Date.add(Date.utc_today(), -secondary_days),
     Date.utc_today()
   )
 
 imported_stats_range =
   Date.range(
-    Date.add(native_stats_range.first, -180),
+    Date.add(native_stats_range.first, -imported_days),
     Date.add(native_stats_range.first, -1)
   )
 
@@ -236,7 +242,8 @@ end
 
 native_stats_range
 |> Enum.flat_map(fn date ->
-  n_visitors = 50 + :rand.uniform(150)
+  {base_visitors, random_visitors} = primary_visitors
+  n_visitors = base_visitors + :rand.uniform(random_visitors)
 
   Enum.flat_map(0..n_visitors, fn _ ->
     visit_start_timestamp = with_random_time.(date)
@@ -295,7 +302,8 @@ end)
 
 native_stats_range2
 |> Enum.flat_map(fn date ->
-  n_visitors = 10 + :rand.uniform(70)
+  {base_visitors, random_visitors} = secondary_visitors
+  n_visitors = base_visitors + :rand.uniform(random_visitors)
 
   Enum.flat_map(0..n_visitors, fn _ ->
     visit_start_timestamp = with_random_time.(date)

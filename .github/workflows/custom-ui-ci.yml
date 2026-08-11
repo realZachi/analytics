@@ -1,0 +1,75 @@
+name: Plausible custom UI checks
+
+on:
+  push:
+    branches: ["custom/**"]
+    paths:
+      - "assets/**"
+      - "lib/plausible_web/**"
+      - "extra/lib/plausible_web/**"
+      - "custom/**"
+      - ".github/workflows/custom-ui-ci.yml"
+  pull_request:
+    branches: ["custom/**"]
+    paths:
+      - "assets/**"
+      - "lib/plausible_web/**"
+      - "extra/lib/plausible_web/**"
+      - "custom/**"
+      - ".github/workflows/custom-ui-ci.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  assets:
+    name: Frontend checks
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Read tool versions
+        id: versions
+        uses: marocchino/tool-versions-action@18a164fa2b0db1cc1edf7305fcb17ace36d1c306 # v1.2.0
+      - name: Set up Node
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: ${{ steps.versions.outputs.nodejs }}
+          cache: npm
+          cache-dependency-path: assets/package-lock.json
+      - run: npm ci --prefix assets
+      - run: npm run generate-types --prefix assets
+      - run: git diff --exit-code -- assets/js/types
+      - run: npm run typecheck --prefix assets
+      - run: npm run lint --prefix assets
+      - run: npm run check-format --prefix assets
+      - run: npm run test --prefix assets -- --runInBand
+
+  elixir-format:
+    name: Elixir and HEEx formatting
+    runs-on: ubuntu-24.04
+    env:
+      MIX_ENV: ce_dev
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Read tool versions
+        id: versions
+        uses: marocchino/tool-versions-action@18a164fa2b0db1cc1edf7305fcb17ace36d1c306 # v1.2.0
+      - name: Set up Erlang and Elixir
+        uses: erlef/setup-beam@fc68ffb90438ef2936bbb3251622353b3dcb2f93 # v1.24.0
+        with:
+          elixir-version: ${{ steps.versions.outputs.elixir }}
+          otp-version: ${{ steps.versions.outputs.erlang }}
+      - name: Cache Mix dependencies
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        with:
+          path: |
+            deps
+            _build
+          key: ce-dev-format-${{ runner.os }}-${{ hashFiles('mix.lock') }}
+      - run: mix deps.get --only ce_dev
+      - run: mix format --check-formatted

@@ -1,20 +1,30 @@
 import Config
 
+typecheck_watcher =
+  if System.get_env("CUSTOM_DISABLE_TYPECHECK_WATCHER") == "true" do
+    []
+  else
+    [npm: ["--prefix", "assets", "run", "typecheck", "--", "--watch", "--preserveWatchOutput"]]
+  end
+
 config :plausible, PlausibleWeb.Endpoint,
   server: true,
   debug_errors: true,
   code_reloader: true,
   check_origin: false,
-  watchers: [
-    esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:default, ~w(--watch)]},
-    npm: ["--prefix", "assets", "run", "typecheck", "--", "--watch", "--preserveWatchOutput"],
-    npm: [
-      "run",
-      "deploy",
-      cd: Path.expand("../tracker", __DIR__)
-    ]
-  ],
+  watchers:
+    [
+      esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]},
+      tailwind: {Tailwind, :install_and_run, [:default, ~w(--watch)]}
+    ] ++
+      typecheck_watcher ++
+      [
+        npm: [
+          "run",
+          "deploy",
+          cd: Path.expand("../tracker", __DIR__)
+        ]
+      ],
   live_reload: [
     dirs: [
       "extra"

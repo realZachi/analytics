@@ -1,17 +1,23 @@
-import React, { useMemo, useRef } from 'react'
+import React, { useMemo, useRef, useState } from 'react'
 import {
   FILTER_MODAL_TO_FILTER_GROUP,
   formatFilterGroup
 } from '../util/filters'
 import { PlausibleSite, useSiteContext } from '../site-context'
 import { filterRoute } from '../router'
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
-import { Popover, Transition } from '@headlessui/react'
-import { popover, BlurMenuButtonOnEscape } from '../components/popover'
 import classNames from 'classnames'
+import { Search02Icon } from '@hugeicons/core-free-icons'
 import { AppNavigationLink } from '../navigation/use-app-navigate'
 import { SearchableSegmentsSection } from './segments/searchable-segments-section'
 import { useSegmentsContext } from '../filtering/segments-context'
+import { BlurMenuButtonOnEscape } from './blur-menu-button-on-escape'
+import { DashboardIcon } from '../components/dashboard-icon'
+import { buttonVariants } from '../components/ui/button'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from '../components/ui/popover'
 
 export function getFilterListItems({
   propsAvailable
@@ -45,45 +51,47 @@ export function getFilterListItems({
   ]
 }
 
-const FilterMenuItems = ({ closeDropdown }: { closeDropdown: () => void }) => {
+const FilterMenuItems = ({
+  closeDropdown,
+  open,
+  setOpen
+}: {
+  closeDropdown: () => void
+  open: boolean
+  setOpen: (open: boolean) => void
+}) => {
   const site = useSiteContext()
   const columns = useMemo(() => getFilterListItems(site), [site])
-  const buttonRef = useRef<HTMLButtonElement>(null)
+  const buttonRef = useRef<HTMLButtonElement | null>(null)
   const panelRef = useRef<HTMLDivElement>(null)
   const { limitedToSegment } = useSegmentsContext()
 
   return (
-    <>
+    <Popover open={open} onOpenChange={setOpen}>
       <BlurMenuButtonOnEscape targetRef={buttonRef} />
-      <Popover.Button
-        ref={buttonRef}
-        className={classNames(
-          popover.toggleButton.classNames.rounded,
-          popover.toggleButton.classNames.ghost,
-          'justify-center gap-1 px-3'
-        )}
+      <PopoverTrigger
+        onFocus={(event) => {
+          buttonRef.current = event.currentTarget
+        }}
+        className={buttonVariants({
+          variant: 'ghost',
+          size: 'lg',
+          className: 'justify-center gap-1 px-3 text-foreground'
+        })}
       >
-        <MagnifyingGlassIcon className="block h-4 w-4" />
-        <span className={popover.toggleButton.classNames.truncatedText}>
-          Filter
-        </span>
-      </Popover.Button>
-      <Transition
-        as="div"
-        {...popover.transition.props}
-        className={classNames(
-          popover.transition.classNames.fullwidth,
-          'mt-2 md:left-auto md:w-80 md:origin-top-right'
-        )}
-      >
-        <Popover.Panel
+        <DashboardIcon icon={Search02Icon} className="size-4" />
+        <span className="truncate font-medium">Filter</span>
+      </PopoverTrigger>
+      {open && (
+        <PopoverContent
           ref={panelRef}
-          className={classNames(popover.panel.classNames.roundedSheet)}
+          align="end"
+          className="w-[min(20rem,calc(100vw-1rem))] gap-0 p-1"
           data-testid="filtermenu"
         >
           <div className="flex">
             {columns.map((filterGroups, index) => (
-              <div key={index} className="flex flex-col w-1/2">
+              <div key={index} className="flex w-1/2 flex-col">
                 {filterGroups.map(({ title, modals }) => (
                   <div key={title}>
                     <div className={titleClassName}>{title}</div>
@@ -91,11 +99,8 @@ const FilterMenuItems = ({ closeDropdown }: { closeDropdown: () => void }) => {
                       .filter((m) => !!m)
                       .map((modalKey) => (
                         <AppNavigationLink
-                          className={classNames(
-                            popover.items.classNames.navigationLink,
-                            popover.items.classNames.hoverLink
-                          )}
-                          onClick={() => closeDropdown()}
+                          className={menuItemClassName}
+                          onClick={closeDropdown}
                           key={modalKey}
                           path={filterRoute.path}
                           params={{ field: modalKey }}
@@ -115,17 +120,30 @@ const FilterMenuItems = ({ closeDropdown }: { closeDropdown: () => void }) => {
               tooltipContainerRef={panelRef}
             />
           )}
-        </Popover.Panel>
-      </Transition>
-    </>
+        </PopoverContent>
+      )}
+    </Popover>
   )
 }
 
-export const FilterMenu = () => (
-  <Popover className="shrink-0 md:relative">
-    {({ close }) => <FilterMenuItems closeDropdown={close} />}
-  </Popover>
-)
+export const FilterMenu = () => {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div className="relative shrink-0">
+      <FilterMenuItems
+        closeDropdown={() => setOpen(false)}
+        open={open}
+        setOpen={setOpen}
+      />
+    </div>
+  )
+}
 
 const titleClassName =
-  'text-sm pb-1 px-4 pt-2 font-bold uppercase text-indigo-500 dark:text-indigo-400'
+  'px-3 pt-2 pb-1 text-xs font-semibold uppercase tracking-wide text-primary'
+
+const menuItemClassName = classNames(
+  'flex items-center rounded-md px-3 py-2 text-sm font-medium text-foreground outline-none transition-colors',
+  'hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring/50'
+)

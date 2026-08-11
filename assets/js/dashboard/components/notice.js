@@ -2,6 +2,10 @@ import React from 'react'
 import { sectionTitles } from '../stats/behaviours'
 import * as api from '../api'
 import { useSiteContext } from '../site-context'
+import { ArrowRight02Icon } from '@hugeicons/core-free-icons'
+import { DashboardIcon } from './dashboard-icon'
+import { Button, buttonVariants } from './ui/button'
+import { cn } from '../lib/utils'
 
 export function FeatureSetupNotice({
   feature,
@@ -37,46 +41,33 @@ export function FeatureSetupNotice({
     return (
       <a
         href={callToAction.link}
-        className="flex items-center gap-x-1.5 ml-2 sm:ml-4 button px-2 sm:px-4"
+        className={cn(
+          buttonVariants({ size: 'default' }),
+          'ml-2 gap-1.5 sm:ml-4'
+        )}
       >
         <p className="text-xs sm:text-sm font-medium">{callToAction.action}</p>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
-          stroke="currentColor"
-          className="size-4"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75"
-          />
-        </svg>
+        <DashboardIcon icon={ArrowRight02Icon} className="size-4" />
       </a>
     )
   }
 
   function renderHideButton() {
     return (
-      <button
-        onClick={requestHideSection}
-        className="inline-block px-2 sm:px-4 py-2 font-medium leading-5 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-white hover:shadow-sm transition-all duration-150"
-      >
+      <Button onClick={requestHideSection} variant="outline">
         Hide this report
-      </button>
+      </Button>
     )
   }
 
   return (
     <div className="sm:mx-32 mt-6 mb-3">
       <div className="py-3">
-        <div className="text-center text-pretty mt-2 text-gray-800 dark:text-gray-200 font-medium">
+        <div className="mt-2 text-center text-pretty font-medium text-foreground">
           {title}
         </div>
 
-        <div className="text-center text-pretty mt-4 font-small text-sm text-gray-500 dark:text-gray-200">
+        <div className="font-small mt-4 text-center text-sm text-pretty text-muted-foreground">
           {info}
         </div>
 

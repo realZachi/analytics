@@ -17,6 +17,7 @@ import { countriesRoute } from '../../router'
 import { MIN_HEIGHT } from '../reports/list'
 import { MapTooltip } from './map-tooltip'
 import { GeolocationNotice } from './geolocation-notice'
+import { Skeleton } from '../../components/ui/skeleton'
 
 const width = 475
 const height = 335
@@ -172,14 +173,11 @@ const WorldMap = ({
             }
           />
         )}
-        {isFetching ||
-          (isError && (
-            <div className="absolute inset-0 flex justify-center items-center">
-              <div className="loading">
-                <div />
-              </div>
-            </div>
-          ))}
+        {(isFetching || isError) && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Skeleton className="size-16 rounded-full" />
+          </div>
+        )}
       </div>
       <MoreLink
         list={data?.results ?? []}
@@ -205,19 +203,15 @@ const sharedCountryClass = classNames('transition-colors')
 const countryClass = classNames(
   sharedCountryClass,
   'stroke-1',
-  'fill-[#fafafa]',
-  'stroke-[#dae1e7]',
-  'dark:fill-[#323236]',
-  'dark:stroke-[#18181b]'
+  'fill-muted',
+  'stroke-border'
 )
 
 const highlightedCountryClass = classNames(
   sharedCountryClass,
   'stroke-2',
-  'fill-[#f4f4f5]',
-  'stroke-[#a78bfa]',
-  'dark:fill-[#3f3f46]',
-  'dark:stroke-[#6366f1]'
+  'fill-accent',
+  'stroke-primary'
 )
 
 /**

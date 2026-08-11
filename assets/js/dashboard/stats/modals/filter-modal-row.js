@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { TrashIcon } from '@heroicons/react/20/solid'
+import { Delete02Icon } from '@hugeicons/core-free-icons'
 import classNames from 'classnames'
 
 import FilterOperatorSelector from '../../components/filter-operator-selector'
@@ -15,6 +15,8 @@ import {
 import { apiPath } from '../../util/url'
 import { useQueryContext } from '../../query-context'
 import { useSiteContext } from '../../site-context'
+import { Button } from '../../components/ui/button'
+import { DashboardIcon } from '../../components/dashboard-icon'
 
 export default function FilterModalRow({
   filter,
@@ -97,13 +99,16 @@ export default function FilterModalRow({
       </div>
       {showDelete && (
         <div className="col-span-1 flex flex-col mt-2">
-          {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-          <a
-            className="ml-2 text-red-600 h-5 w-5 cursor-pointer"
+          <Button
+            aria-label="Remove filter row"
+            className="ml-1 text-destructive"
             onClick={onDelete}
+            size="icon-sm"
+            type="button"
+            variant="ghost"
           >
-            <TrashIcon />
-          </a>
+            <DashboardIcon icon={Delete02Icon} />
+          </Button>
         </div>
       )}
     </div>

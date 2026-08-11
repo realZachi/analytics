@@ -18,7 +18,7 @@ import { rootRoute } from '../router'
 import { FilterPillsList } from '../nav-menu/filter-pills-list'
 import classNames from 'classnames'
 import { SegmentAuthorship } from './segment-authorship'
-import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
+import { Alert02Icon, Loading03Icon } from '@hugeicons/core-free-icons'
 import { MutationStatus, useQuery } from '@tanstack/react-query'
 import { ApiError, get } from '../api'
 import { ErrorPanel } from '../components/error-panel'
@@ -26,6 +26,13 @@ import { useSegmentsContext } from '../filtering/segments-context'
 import { Role, UserContextValue, useUserContext } from '../user-context'
 import { removeFilterButtonClassname } from '../components/remove-filter-button'
 import { useSiteContext } from '../site-context'
+import { DashboardIcon } from '../components/dashboard-icon'
+import { Button, buttonVariants } from '../components/ui/button'
+import { Checkbox as ShadcnCheckbox } from '../components/ui/checkbox'
+import { Input } from '../components/ui/input'
+import { Label } from '../components/ui/label'
+import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group'
+import { Separator } from '../components/ui/separator'
 
 interface ApiRequestProps {
   status: MutationStatus
@@ -40,18 +47,7 @@ interface SegmentModalProps {
   namePlaceholder: string
 }
 
-const primaryNeutralButtonClassName = 'button !px-3'
-
-const primaryNegativeButtonClassName = classNames(
-  'button !px-3.5',
-  'items-center !bg-red-500 dark:!bg-red-500 hover:!bg-red-600 dark:hover:!bg-red-700 whitespace-nowrap',
-  'disabled:!bg-red-400 disabled:cursor-not-allowed'
-)
-
-const secondaryButtonClassName = classNames(
-  'button !px-3.5',
-  'border !border-gray-300 dark:!border-gray-700 !bg-white dark:!bg-gray-700 !text-gray-800 dark:!text-gray-100 hover:!text-gray-900 hover:!shadow-sm dark:hover:!bg-gray-600 dark:hover:!text-white'
-)
+const primaryNeutralButtonClassName = buttonVariants()
 
 const SegmentActionModal = ({
   children,
@@ -66,7 +62,7 @@ const SegmentActionModal = ({
       className="p-6 min-h-fit"
       onClose={onClose}
     >
-      <div className="mb-8 dark:text-gray-100">{children}</div>
+      <div className="mb-8 text-foreground">{children}</div>
     </ModalWithRouting>
   )
 }
@@ -127,9 +123,9 @@ export const CreateSegmentModal = ({
             onSave({ name: saveableName, type })
           }}
         />
-        <button className={secondaryButtonClassName} onClick={onClose}>
+        <Button variant="outline" onClick={onClose}>
           Cancel
-        </button>
+        </Button>
       </ButtonsRow>
       {error !== null && (
         <ErrorPanel
@@ -189,9 +185,10 @@ export const DeleteSegmentModal = ({
         <span className="break-all">{` "${segment.name}"?`}</span>
       </FormTitle>
       {linksQuery.status === 'pending' && (
-        <div className="loading sm">
-          <div />
-        </div>
+        <DashboardIcon
+          icon={Loading03Icon}
+          className="size-4 animate-spin text-muted-foreground"
+        />
       )}
       {linksQuery.status === 'success' && !!linksQuery.data?.length && (
         <ErrorPanel
@@ -219,19 +216,15 @@ export const DeleteSegmentModal = ({
             <RelatedSharedLinks sharedLinks={linksQuery.data} />
           </div>
           <div className="mt-4">
-            <Checkbox
-              id="confirm"
-              checked={confirmed}
-              onChange={(e) => setConfirmed(e.currentTarget.checked)}
-            >
+            <Checkbox id="confirm" checked={confirmed} onChange={setConfirmed}>
               Yes, delete the associated shared links
             </Checkbox>
           </div>
         </>
       )}
       <ButtonsRow>
-        <button
-          className={primaryNegativeButtonClassName}
+        <Button
+          variant="destructive"
           disabled={deleteDisabled}
           onClick={
             deleteDisabled
@@ -242,10 +235,10 @@ export const DeleteSegmentModal = ({
           }
         >
           Delete
-        </button>
-        <button className={secondaryButtonClassName} onClick={onClose}>
+        </Button>
+        <Button variant="outline" onClick={onClose}>
           Cancel
-        </button>
+        </Button>
       </ButtonsRow>
       {error !== null && (
         <ErrorPanel
@@ -271,7 +264,7 @@ const RelatedSharedLinks = ({ sharedLinks }: { sharedLinks: string[] }) => {
           className="flex-wrap"
           direction="horizontal"
           pills={sharedLinks.map((name) => ({
-            className: 'dark:!shadow-gray-950/60',
+            className: 'dark:!shadow-black/60',
             plainText: name,
             children: name,
             interactive: false
@@ -291,7 +284,7 @@ const FormTitle = ({
 }) => (
   <h1
     className={classNames(
-      'text-lg font-medium text-gray-900 dark:text-gray-100 leading-7',
+      'font-heading text-lg font-medium leading-7 text-foreground',
       className
     )}
   >
@@ -322,19 +315,16 @@ const SegmentNameInput = ({
 }) => {
   return (
     <>
-      <label
-        htmlFor="name"
-        className="block mb-1.5 text-sm font-medium dark:text-gray-100 text-gray-700 dark:text-gray-300"
-      >
+      <Label htmlFor="name" className="mb-1.5 block">
         Segment name
-      </label>
-      <input
+      </Label>
+      <Input
         autoComplete="off"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={namePlaceholder}
         id="name"
-        className="block px-3.5 py-2.5 w-full text-sm dark:text-gray-300 rounded-md border border-gray-300 dark:border-gray-750 dark:bg-gray-750 focus:outline-none focus:ring-3 focus:ring-indigo-500/20 dark:focus:ring-indigo-500/25 focus:border-indigo-500"
+        className="w-full"
       />
     </>
   )
@@ -361,31 +351,30 @@ const SegmentTypeSelector = ({
   ]
 
   return (
-    <div className="mt-6 flex flex-col gap-y-4">
+    <RadioGroup
+      className="mt-6 gap-4"
+      value={value}
+      onValueChange={(nextValue) => onChange(nextValue as SegmentType)}
+    >
       {options.map(({ type, name, description }) => (
-        <div key={type}>
-          <div className="flex">
-            <input
-              checked={value === type}
-              id={`segment-type-${type}`}
-              type="radio"
-              value=""
-              onChange={() => onChange(type)}
-              className="mt-px size-4.5 cursor-pointer text-indigo-600 dark:bg-transparent border-gray-400 dark:border-gray-600 checked:border-indigo-600 dark:checked:border-white"
-            />
-            <label
-              htmlFor={`segment-type-${type}`}
-              className="block ml-3 text-sm font-medium dark:text-gray-100 flex flex-col flex-inline"
-            >
-              <div>{name}</div>
-              <div className="text-gray-500 dark:text-gray-400 mb-2 text-sm">
-                {description}
-              </div>
-            </label>
-          </div>
+        <div key={type} className="flex items-start gap-3">
+          <RadioGroupItem
+            id={`segment-type-${type}`}
+            value={type}
+            className="mt-0.5"
+          />
+          <Label
+            htmlFor={`segment-type-${type}`}
+            className="flex flex-col items-start gap-1"
+          >
+            <div>{name}</div>
+            <div className="text-sm font-normal text-muted-foreground">
+              {description}
+            </div>
+          </Label>
         </div>
       ))}
-    </div>
+    </RadioGroup>
   )
 }
 
@@ -454,14 +443,13 @@ const SaveSegmentButton = ({
   onSave: () => void
 }) => {
   return (
-    <button
-      className={primaryNeutralButtonClassName}
+    <Button
       type="button"
       disabled={disabled}
       onClick={disabled ? () => {} : onSave}
     >
       Save
-    </button>
+    </Button>
   )
 }
 
@@ -473,8 +461,8 @@ const SegmentTypeDisabledMessage = ({
   if (!message) return null
 
   return (
-    <div className="mt-2 flex gap-x-2 text-sm">
-      <ExclamationTriangleIcon className="mt-1 block w-4 h-4 shrink-0" />
+    <div className="mt-2 flex gap-x-2 text-sm text-muted-foreground">
+      <DashboardIcon icon={Alert02Icon} className="mt-0.5 size-4 shrink-0" />
       <div>{message}</div>
     </div>
   )
@@ -526,9 +514,9 @@ export const UpdateSegmentModal = ({
             onSave({ id: segment.id, name: saveableName, type })
           }}
         />
-        <button className={secondaryButtonClassName} onClick={onClose}>
+        <Button variant="outline" onClick={onClose}>
           Cancel
-        </button>
+        </Button>
       </ButtonsRow>
       {error !== null && (
         <ErrorPanel
@@ -554,7 +542,7 @@ const FiltersInSegment = ({ segment_data }: { segment_data: SegmentData }) => {
           className="flex-wrap"
           direction="horizontal"
           pills={segment_data.filters.map((filter) => ({
-            className: 'dark:!shadow-gray-950/60',
+            className: 'dark:!shadow-black/60',
             plainText: plainFilterText({ labels: segment_data.labels }, filter),
             children: styledFilterText({ labels: segment_data.labels }, filter),
             interactive: false
@@ -566,7 +554,7 @@ const FiltersInSegment = ({ segment_data }: { segment_data: SegmentData }) => {
 }
 
 const SecondaryTitle = ({ children }: { children: ReactNode }) => (
-  <h2 className="font-bold dark:text-gray-100">{children}</h2>
+  <h2 className="font-heading font-medium text-foreground">{children}</h2>
 )
 
 /** Keep this component styled the same as checkboxes in PlausibleWeb.Live.Installation.Instructions */
@@ -575,22 +563,18 @@ const Checkbox = ({
   checked,
   onChange,
   children
-}: React.DetailedHTMLProps<
-  React.InputHTMLAttributes<HTMLInputElement>,
-  HTMLInputElement
->) => {
+}: {
+  id: string
+  checked: boolean
+  onChange: (checked: boolean) => void
+  children: ReactNode
+}) => {
   return (
     <label
-      className="text-sm block font-medium dark:text-gray-100 font-normal gap-x-2 flex flex-inline items-center justify-start"
+      className="flex items-center justify-start gap-x-2 text-sm font-normal text-foreground"
       htmlFor={id}
     >
-      <input
-        className="block size-5 rounded-sm dark:bg-gray-600 border-gray-300 dark:border-gray-600 text-indigo-600"
-        id={id}
-        type="checkbox"
-        checked={checked}
-        onChange={onChange}
-      />
+      <ShadcnCheckbox id={id} checked={checked} onCheckedChange={onChange} />
       {children}
     </label>
   )
@@ -605,9 +589,8 @@ const Placeholder = ({
 }) => (
   <span
     className={classNames(
-      'rounded',
-      children === false &&
-        'bg-gray-100 dark:bg-gray-700 text-gray-100 dark:text-gray-700'
+      'rounded-md',
+      children === false && 'bg-muted text-muted'
     )}
   >
     {children === false ? placeholder : children}
@@ -644,10 +627,10 @@ export const SegmentModal = ({ id }: { id: SavedSegment['id'] }) => {
 
   return (
     <ModalWithRouting maxWidth="460px">
-      <div className="dark:text-gray-100 mb-8">
+      <div className="mb-8 text-foreground">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-x-2">
-            <h1 className="text-xl font-bold break-all">
+            <h1 className="break-all font-heading text-xl font-medium">
               {data ? data.name : 'Segment details'}
             </h1>
           </div>
@@ -658,7 +641,7 @@ export const SegmentModal = ({ id }: { id: SavedSegment['id'] }) => {
             {data?.segment_data ? SEGMENT_TYPE_LABELS[data.type] : false}
           </Placeholder>
         </div>
-        <div className="my-4 border-b border-gray-300 dark:border-gray-700" />
+        <Separator className="my-4" />
         {!!data?.segment_data && (
           <>
             <FiltersInSegment segment_data={data.segment_data} />
@@ -688,7 +671,8 @@ export const SegmentModal = ({ id }: { id: SavedSegment['id'] }) => {
                 )}
 
                 {showClearButton && (
-                  <button
+                  <Button
+                    variant="ghost"
                     className={removeFilterButtonClassname}
                     onClick={() =>
                       navigate({
@@ -698,7 +682,7 @@ export const SegmentModal = ({ id }: { id: SavedSegment['id'] }) => {
                     }
                   >
                     Remove filter
-                  </button>
+                  </Button>
                 )}
               </ButtonsRow>
             </div>

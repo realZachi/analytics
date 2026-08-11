@@ -1,11 +1,7 @@
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import MetricValue from './metric-value'
-
-jest.mock('@heroicons/react/24/solid', () => ({
-  ArrowUpRightIcon: () => <>↑</>,
-  ArrowDownRightIcon: () => <>↓</>
-}))
+import { TooltipProvider } from '../../components/ui/tooltip'
 
 const REVENUE = { long: '$1,659.50', short: '$1.7K' }
 
@@ -20,7 +16,7 @@ describe('single value', () => {
     await renderWithTooltip(<MetricValue {...valueProps('visitors', 12345)} />)
 
     expect(screen.getByTestId('metric-value')).toHaveTextContent('12.3k')
-    expect(screen.getByRole('tooltip')).toHaveTextContent('12,345')
+    expect(getTooltipContent()).toHaveTextContent('12,345')
   })
 
   it('renders percentages', async () => {
@@ -52,7 +48,7 @@ describe('single value', () => {
     )
 
     expect(screen.getByTestId('metric-value')).toHaveTextContent('$1.7K')
-    expect(screen.getByRole('tooltip')).toHaveTextContent('$1,659.50')
+    expect(getTooltipContent()).toHaveTextContent('$1,659.50')
   })
 
   it('renders null revenue without tooltip', async () => {
@@ -70,12 +66,12 @@ describe('comparisons', () => {
       <MetricValue {...valueProps('visitors', 10, { value: 5, change: 100 })} />
     )
 
-    expect(screen.getByTestId('metric-value')).toHaveTextContent('10↑')
-    expect(screen.getByRole('tooltip')).toHaveTextContent(
+    expect(screen.getByTestId('metric-value')).toHaveTextContent('10')
+    expect(getTooltipContent()).toHaveTextContent(
       [
         '10 visitors',
         '01 Aug - 31 Aug',
-        '↑ 100%',
+        ' 100%',
         '5 visitors',
         '01 July - 31 July'
       ].join('')
@@ -87,12 +83,12 @@ describe('comparisons', () => {
       <MetricValue {...valueProps('visitors', 5, { value: 10, change: -50 })} />
     )
 
-    expect(screen.getByTestId('metric-value')).toHaveTextContent('5↓')
-    expect(screen.getByRole('tooltip')).toHaveTextContent(
+    expect(screen.getByTestId('metric-value')).toHaveTextContent('5')
+    expect(getTooltipContent()).toHaveTextContent(
       [
         '5 visitors',
         '01 Aug - 31 Aug',
-        '↓ 50%',
+        ' 50%',
         '10 visitors',
         '01 July - 31 July'
       ].join('')
@@ -105,7 +101,7 @@ describe('comparisons', () => {
     )
 
     expect(screen.getByTestId('metric-value')).toHaveTextContent('10')
-    expect(screen.getByRole('tooltip')).toHaveTextContent(
+    expect(getTooltipContent()).toHaveTextContent(
       [
         '10 visitors',
         '01 Aug - 31 Aug',
@@ -124,7 +120,7 @@ describe('comparisons', () => {
       />
     )
 
-    expect(screen.getByRole('tooltip')).toHaveTextContent(
+    expect(getTooltipContent()).toHaveTextContent(
       [
         '10 conversions',
         '01 Aug - 31 Aug',
@@ -143,7 +139,7 @@ describe('comparisons', () => {
       />
     )
 
-    expect(screen.getByRole('tooltip')).toHaveTextContent(
+    expect(getTooltipContent()).toHaveTextContent(
       ['10% ', '01 Aug - 31 Aug', '0%', '10% ', '01 July - 31 July'].join('')
     )
   })
@@ -156,12 +152,12 @@ describe('comparisons', () => {
       />
     )
 
-    expect(screen.getByTestId('metric-value')).toHaveTextContent('10$↑')
-    expect(screen.getByRole('tooltip')).toHaveTextContent(
+    expect(screen.getByTestId('metric-value')).toHaveTextContent('10$')
+    expect(getTooltipContent()).toHaveTextContent(
       [
         '10$ test',
         '01 Aug - 31 Aug',
-        '↑ 100%',
+        ' 100%',
         '5$ test',
         '01 July - 31 July'
       ].join('')
@@ -179,7 +175,7 @@ describe('comparisons', () => {
     )
 
     expect(screen.getByTestId('metric-value')).toHaveTextContent('$1.7K')
-    expect(screen.getByRole('tooltip')).toHaveTextContent(
+    expect(getTooltipContent()).toHaveTextContent(
       [
         '$1,659.50 average_revenue',
         '01 Aug - 31 Aug',
@@ -228,11 +224,23 @@ function valueProps<T>(
 }
 
 async function renderWithTooltip(ui: React.ReactNode) {
-  render(ui)
+  render(<TooltipProvider>{ui}</TooltipProvider>)
   await waitForTooltip()
 }
 
 async function waitForTooltip() {
-  fireEvent.mouseOver(screen.getByTestId('metric-value'))
-  await waitFor(() => screen.getByRole('tooltip'))
+  fireEvent.mouseEnter(screen.getByTestId('metric-value'))
+  await waitFor(getTooltipContent)
+}
+
+function getTooltipContent(): HTMLElement {
+  const tooltip = document.querySelector<HTMLElement>(
+    '[data-slot="tooltip-content"]'
+  )
+
+  if (!tooltip) {
+    throw new Error('Tooltip content is not visible')
+  }
+
+  return tooltip
 }

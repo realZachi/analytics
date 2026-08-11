@@ -15,7 +15,7 @@ defmodule PlausibleWeb.Components.Dashboard.Metric do
 
   def value(assigns) do
     ~H"""
-    <div class="cursor-default">
+    <div class="cursor-default text-card-foreground">
       {format_value(@name, @value)}
     </div>
     """

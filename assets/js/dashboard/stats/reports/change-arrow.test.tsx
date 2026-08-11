@@ -2,22 +2,13 @@ import React from 'react'
 import { render, screen } from '@testing-library/react'
 import { ChangeArrow } from './change-arrow'
 
-jest.mock('@heroicons/react/24/solid', () => ({
-  ArrowUpRightIcon: ({ className }: { className: string }) => (
-    <span className={className}>↑</span>
-  ),
-  ArrowDownRightIcon: ({ className }: { className: string }) => (
-    <span className={className}>↓</span>
-  )
-}))
-
 it('renders green for positive change', () => {
   render(<ChangeArrow change={1} className="text-xs" metric="visitors" />)
 
   const arrowElement = screen.getByTestId('change-arrow')
 
-  expect(arrowElement).toHaveTextContent('↑ 1%')
-  expect(arrowElement.children[0]).toHaveClass('text-green-500')
+  expect(arrowElement).toHaveTextContent('1%')
+  expect(arrowElement.querySelector('svg')).toHaveClass('text-chart-2')
 })
 
 it('renders red for positive change', () => {
@@ -25,8 +16,8 @@ it('renders red for positive change', () => {
 
   const arrowElement = screen.getByTestId('change-arrow')
 
-  expect(arrowElement).toHaveTextContent('↓ 10%')
-  expect(arrowElement.children[0]).toHaveClass('text-red-400')
+  expect(arrowElement).toHaveTextContent('10%')
+  expect(arrowElement.querySelector('svg')).toHaveClass('text-destructive')
 })
 
 it('renders tilde for no change', () => {
@@ -42,8 +33,8 @@ it('inverts colors for positive bounce_rate change', () => {
 
   const arrowElement = screen.getByTestId('change-arrow')
 
-  expect(arrowElement).toHaveTextContent('↑ 15%')
-  expect(arrowElement.children[0]).toHaveClass('text-red-400')
+  expect(arrowElement).toHaveTextContent('15%')
+  expect(arrowElement.querySelector('svg')).toHaveClass('text-destructive')
 })
 
 it('inverts colors for negative bounce_rate change', () => {
@@ -51,8 +42,8 @@ it('inverts colors for negative bounce_rate change', () => {
 
   const arrowElement = screen.getByTestId('change-arrow')
 
-  expect(arrowElement).toHaveTextContent('↓ 3%')
-  expect(arrowElement.children[0]).toHaveClass('text-green-500')
+  expect(arrowElement).toHaveTextContent('3%')
+  expect(arrowElement.querySelector('svg')).toHaveClass('text-chart-2')
 })
 
 it('renders with text hidden', () => {
@@ -62,8 +53,8 @@ it('renders with text hidden', () => {
 
   const arrowElement = screen.getByTestId('change-arrow')
 
-  expect(arrowElement).toHaveTextContent('↓')
-  expect(arrowElement.children[0]).toHaveClass('text-red-400')
+  expect(arrowElement).toHaveTextContent('')
+  expect(arrowElement.querySelector('svg')).toHaveClass('text-destructive')
 })
 
 it('renders no content with text hidden and 0 change', () => {

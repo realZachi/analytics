@@ -3,6 +3,14 @@ import React, { ReactNode } from 'react'
 import { SortDirection } from '../hooks/use-order-by'
 import { SortButton } from './sort-button'
 import { Tooltip } from '../util/tooltip'
+import {
+  Table as ShadcnTable,
+  TableBody,
+  TableCell as ShadcnTableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from './ui/table'
 
 export type ColumnConfiguraton<T extends Record<string, unknown>> = {
   /** Unique column ID, used for sorting purposes and to get the value of the cell using rowItem[key] */
@@ -36,15 +44,15 @@ export const TableHeaderCell = ({
   align?: 'left' | 'right'
 }) => {
   return (
-    <th
+    <TableHead
       className={classNames(
-        'p-2 text-xs font-semibold text-gray-500 dark:text-gray-400',
+        'h-8 p-2 text-xs font-medium text-muted-foreground',
         className
       )}
       align={align}
     >
       {children}
-    </th>
+    </TableHead>
   )
 }
 
@@ -58,15 +66,15 @@ export const TableCell = ({
   align?: 'left' | 'right'
 }) => {
   return (
-    <td
+    <ShadcnTableCell
       className={classNames(
-        'p-2 font-medium first:rounded-s-sm last:rounded-e-sm',
+        'p-2 font-medium first:rounded-s-md last:rounded-e-md',
         className
       )}
       align={align}
     >
       {children}
-    </td>
+    </ShadcnTableCell>
   )
 }
 
@@ -104,8 +112,8 @@ export const ItemRow = <T extends Record<string, string | number | ReactNode>>({
   }
 
   return (
-    <tr
-      className="group text-sm dark:text-gray-200 md:cursor-default cursor-pointer"
+    <TableRow
+      className="group cursor-pointer border-0 text-sm text-card-foreground hover:bg-muted/60 md:cursor-default"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleRowClick}
@@ -123,7 +131,7 @@ export const ItemRow = <T extends Record<string, string | number | ReactNode>>({
               : (item[key] ?? '')}
         </TableCell>
       ))}
-    </tr>
+    </TableRow>
   )
 }
 
@@ -160,9 +168,9 @@ export const Table = <T extends Record<string, string | number | ReactNode>>({
   }
 
   return (
-    <table className="border-collapse table-striped table-fixed w-max min-w-full">
-      <thead className="sticky top-0 bg-white dark:bg-gray-900 z-10">
-        <tr className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+    <ShadcnTable className="w-max min-w-full table-fixed border-collapse">
+      <TableHeader className="sticky top-0 z-10 bg-card">
+        <TableRow className="border-0 text-xs font-medium text-muted-foreground hover:bg-transparent">
           {columns.map((column) => (
             <TableHeaderCell
               key={`header_${String(column.key)}`}
@@ -181,9 +189,9 @@ export const Table = <T extends Record<string, string | number | ReactNode>>({
               )}
             </TableHeaderCell>
           ))}
-        </tr>
-      </thead>
-      <tbody>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
         {Array.isArray(data)
           ? data.map((item, rowIndex) => (
               <ItemRow
@@ -208,7 +216,7 @@ export const Table = <T extends Record<string, string | number | ReactNode>>({
                 />
               ))
             )}
-      </tbody>
-    </table>
+      </TableBody>
+    </ShadcnTable>
   )
 }

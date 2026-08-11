@@ -1,14 +1,21 @@
-import { EllipsisHorizontalIcon } from '@heroicons/react/24/solid'
 import classNames from 'classnames'
 import React, { useRef, useState, useLayoutEffect } from 'react'
+import { MoreHorizontalIcon } from '@hugeicons/core-free-icons'
 import { AppliedFilterPillsList, PILL_X_GAP_PX } from './filter-pills-list'
 import { useQueryContext } from '../query-context'
 import { AppNavigationLink } from '../navigation/use-app-navigate'
-import { Popover, Transition } from '@headlessui/react'
-import { popover, BlurMenuButtonOnEscape } from '../components/popover'
+import { BlurMenuButtonOnEscape } from './blur-menu-button-on-escape'
 import { isSegmentFilter } from '../filtering/segments'
 import { useRoutelessModalsContext } from '../navigation/routeless-modals-context'
 import { DashboardQuery } from '../query'
+import { DashboardIcon } from '../components/dashboard-icon'
+import { buttonVariants } from '../components/ui/button'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from '../components/ui/popover'
+import { Separator } from '../components/ui/separator'
 
 // Component structure is
 // `..[ filter (x) ]..[ filter (x) ]..[ three dot menu ]..`
@@ -227,7 +234,8 @@ const SeeMoreMenu = ({
   visibleFiltersCount: number
   actions: Array<'save as segment' | 'clear all filters' | false>
 }) => {
-  const seeMoreRef = useRef<HTMLButtonElement>(null)
+  const seeMoreRef = useRef<HTMLButtonElement | null>(null)
+  const [open, setOpen] = useState(false)
   const filtersInMenuCount = filtersCount - visibleFiltersCount
 
   const title =
@@ -239,106 +247,105 @@ const SeeMoreMenu = ({
 
   const showMoreFilters = filtersCount !== visibleFiltersCount
   const showSomeActions = actions.some((a) => a)
+  const menuItemClassName =
+    'flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm font-medium text-foreground outline-none transition-colors hover:bg-accent focus-visible:bg-accent focus-visible:ring-2 focus-visible:ring-ring/50'
 
   return (
-    <Popover className={className}>
-      <BlurMenuButtonOnEscape targetRef={seeMoreRef} />
-      <Popover.Button
-        title={title}
-        ref={seeMoreRef}
-        className={classNames(
-          popover.toggleButton.classNames.rounded,
-          popover.toggleButton.classNames.shadow,
-          'justify-center',
-          'relative group'
-        )}
-        style={{
-          height: SEE_MORE_WIDTH_PX,
-          width: SEE_MORE_WIDTH_PX,
-          marginLeft: SEE_MORE_LEFT_MARGIN_PX,
-          marginRight: SEE_MORE_RIGHT_MARGIN_PX
-        }}
-      >
-        <EllipsisHorizontalIcon className="block h-5 w-5" />
-        {showMoreFilters && (
-          <div
-            aria-hidden="true"
-            className="absolute flex justify-end left-0 right-0 bottom-0 translate-y-1/4 pr-[3px]"
-          >
-            <div className="text-[10px] leading-[10px] min-w-[10px] font-medium shadow-sm px-[3px] py-[1px] flex items-center rounded-xs bg-gray-100 dark:bg-gray-850">
-              +{filtersInMenuCount}
-            </div>
-          </div>
-        )}
-      </Popover.Button>
-      <Transition
-        as="div"
-        {...popover.transition.props}
-        className={classNames(
-          popover.transition.classNames.fullwidth,
-          'mt-2 md:right-auto md:origin-top-left'
-        )}
-      >
-        <Popover.Panel
-          className={classNames(
-            popover.panel.classNames.roundedSheet,
-            'flex flex-col'
-          )}
+    <div className={classNames('relative', className)}>
+      <Popover open={open} onOpenChange={setOpen}>
+        <BlurMenuButtonOnEscape targetRef={seeMoreRef} />
+        <PopoverTrigger
+          onFocus={(event) => {
+            seeMoreRef.current = event.currentTarget
+          }}
+          title={title}
+          style={{
+            height: SEE_MORE_WIDTH_PX,
+            width: SEE_MORE_WIDTH_PX,
+            marginLeft: SEE_MORE_LEFT_MARGIN_PX,
+            marginRight: SEE_MORE_RIGHT_MARGIN_PX
+          }}
+          className={buttonVariants({
+            variant: 'outline',
+            size: 'icon-lg',
+            className: 'relative justify-center rounded-lg bg-card shadow-sm'
+          })}
         >
+          <DashboardIcon icon={MoreHorizontalIcon} className="size-5" />
           {showMoreFilters && (
-            <>
-              <div className="py-4 px-4">
-                <AppliedFilterPillsList
-                  direction="vertical"
-                  pillClassName="!shadow-none !bg-gray-100 dark:!bg-gray-700"
-                  slice={{
-                    type: 'no-render-outside',
-                    start: visibleFiltersCount
-                  }}
-                />
+            <span
+              aria-hidden="true"
+              className="absolute right-0 bottom-0 flex translate-y-1/4 justify-end pr-[3px]"
+            >
+              <span className="flex min-w-[10px] items-center rounded-md bg-muted px-[3px] py-[1px] text-[10px] leading-[10px] font-medium shadow-sm">
+                +{filtersInMenuCount}
+              </span>
+            </span>
+          )}
+        </PopoverTrigger>
+        {open && (
+          <PopoverContent
+            align="start"
+            className="w-max max-w-[calc(100vw-1rem)] gap-0 p-1"
+          >
+            {showMoreFilters && (
+              <>
+                <div className="px-3 py-3">
+                  <AppliedFilterPillsList
+                    direction="vertical"
+                    pillClassName="!bg-muted !shadow-none"
+                    slice={{
+                      type: 'no-render-outside',
+                      start: visibleFiltersCount
+                    }}
+                  />
+                </div>
+                {showSomeActions && <Separator className="my-1" />}
+              </>
+            )}
+            {showSomeActions && (
+              <div className="flex flex-col">
+                {actions.map((action) => {
+                  switch (action) {
+                    case 'clear all filters':
+                      return (
+                        <ClearAction
+                          key={action}
+                          className={menuItemClassName}
+                          onSelect={() => setOpen(false)}
+                        />
+                      )
+                    case 'save as segment':
+                      return (
+                        <SaveAsSegmentAction
+                          key={action}
+                          className={menuItemClassName}
+                          onSelect={() => setOpen(false)}
+                        />
+                      )
+                    default:
+                      return null
+                  }
+                })}
               </div>
-              {showSomeActions && (
-                <div className="mb-1 border-gray-200 dark:border-gray-700 border-b"></div>
-              )}
-            </>
-          )}
-          {showSomeActions && (
-            <div className="flex flex-col">
-              {actions.map((action) => {
-                const linkClassName = classNames(
-                  popover.items.classNames.navigationLink,
-                  popover.items.classNames.selectedOption,
-                  popover.items.classNames.hoverLink,
-                  'whitespace-nowrap'
-                )
-
-                switch (action) {
-                  case 'clear all filters':
-                    return (
-                      <ClearAction key={action} className={linkClassName} />
-                    )
-                  case 'save as segment':
-                    return (
-                      <SaveAsSegmentAction
-                        key={action}
-                        className={linkClassName}
-                      />
-                    )
-                  default:
-                    return null
-                }
-              })}
-            </div>
-          )}
-        </Popover.Panel>
-      </Transition>
-    </Popover>
+            )}
+          </PopoverContent>
+        )}
+      </Popover>
+    </div>
   )
 }
 
-const ClearAction = ({ className }: { className?: string }) => (
+const ClearAction = ({
+  className,
+  onSelect
+}: {
+  className?: string
+  onSelect: () => void
+}) => (
   <AppNavigationLink
     className={className}
+    onClick={onSelect}
     search={(search) => ({
       ...search,
       filters: null,
@@ -349,14 +356,23 @@ const ClearAction = ({ className }: { className?: string }) => (
   </AppNavigationLink>
 )
 
-const SaveAsSegmentAction = ({ className }: { className?: string }) => {
+const SaveAsSegmentAction = ({
+  className,
+  onSelect
+}: {
+  className?: string
+  onSelect: () => void
+}) => {
   const { setModal } = useRoutelessModalsContext()
 
   return (
     <AppNavigationLink
       className={className}
       search={(s) => s}
-      onClick={() => setModal('create')}
+      onClick={() => {
+        onSelect()
+        setModal('create')
+      }}
       state={{ expandedSegment: null }}
     >
       Save as segment

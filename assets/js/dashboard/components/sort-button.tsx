@@ -1,6 +1,9 @@
 import React, { ReactNode } from 'react'
 import { cycleSortDirection, SortDirection } from '../hooks/use-order-by'
 import classNames from 'classnames'
+import { ArrowDown01Icon } from '@hugeicons/core-free-icons'
+import { DashboardIcon } from './dashboard-icon'
+import { Button } from './ui/button'
 
 export const SortButton = ({
   children,
@@ -13,33 +16,32 @@ export const SortButton = ({
 }) => {
   const next = cycleSortDirection(sortDirection)
   return (
-    <button
+    <Button
+      variant="ghost"
+      size="xs"
       onClick={toggleSort}
+      title={next.hint}
       className={classNames(
-        'group',
-        'hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-100',
-        'relative'
+        'group relative h-auto p-0 text-muted-foreground hover:bg-transparent hover:text-foreground'
       )}
     >
       {children}
-      <span
-        title={next.hint}
+      <DashboardIcon
+        icon={ArrowDown01Icon}
+        aria-label={next.hint}
+        decorative={false}
         className={classNames(
-          'absolute',
-          'rounded inline-block size-4',
-          'ml-1',
+          'absolute -right-4 inline-block size-3.5 rounded-sm',
           {
             [SortDirection.asc]: 'rotate-180',
             [SortDirection.desc]: 'rotate-0'
           }[sortDirection ?? next.direction],
           !sortDirection && 'opacity-0',
           !sortDirection && 'group-hover:opacity-100',
-          'group-hover:bg-gray-100 dark:group-hover:bg-gray-900',
+          'group-hover:bg-muted',
           'transition-all duration-100'
         )}
-      >
-        ↓
-      </span>
-    </button>
+      />
+    </Button>
   )
 }

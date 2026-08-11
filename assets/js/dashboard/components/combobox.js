@@ -1,43 +1,19 @@
-import React, {
-  Fragment,
-  useState,
-  useCallback,
-  useEffect,
-  useRef
-} from 'react'
-import { Transition } from '@headlessui/react'
-import { ChevronDownIcon } from '@heroicons/react/20/solid'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import classNames from 'classnames'
-import { useMountedEffect, useDebounce } from '../custom-hooks'
+import {
+  ArrowDown01Icon,
+  Cancel01Icon,
+  Loading03Icon
+} from '@hugeicons/core-free-icons'
+import { useDebounce, useMountedEffect } from '../custom-hooks'
+import { DashboardIcon } from './dashboard-icon'
+import { Badge } from './ui/badge'
+import { Button } from './ui/button'
+import { Command, CommandItem, CommandList } from './ui/command'
+import { InputGroup, InputGroupAddon, InputGroupInput } from './ui/input-group'
 
-function Option({ isHighlighted, onClick, onMouseEnter, text, id }) {
-  const className = classNames(
-    'relative cursor-pointer select-none py-2 px-3 text-gray-900 dark:text-gray-300',
-    {
-      'bg-gray-100 dark:bg-gray-700': isHighlighted
-    }
-  )
-
-  return (
-    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
-    <li
-      className={className}
-      id={id}
-      onClick={onClick}
-      onMouseEnter={onMouseEnter}
-    >
-      <span className="block truncate">{text}</span>
-    </li>
-  )
-}
 function scrollTo(wrapper, id) {
-  if (wrapper) {
-    const el = wrapper.querySelector('#' + id)
-
-    if (el) {
-      el.scrollIntoView({ block: 'center' })
-    }
-  }
+  wrapper?.querySelector(`#${id}`)?.scrollIntoView({ block: 'center' })
 }
 
 function optionId(index) {
@@ -69,8 +45,8 @@ export default function PlausibleCombobox({
   const listRef = useRef(null)
 
   const loading = isLoading || !!forceLoading
-
   const visibleOptions = [...options]
+
   if (
     freeChoice &&
     search.length > 0 &&
@@ -100,302 +76,225 @@ export default function PlausibleCombobox({
   const debouncedSearchOptions = useDebounce(searchOptions)
 
   useEffect(() => {
-    if (isOpen) {
-      initialFetchOptions()
-    }
+    if (isOpen) initialFetchOptions()
   }, [isOpen, initialFetchOptions])
 
   useMountedEffect(() => {
     debouncedSearchOptions()
   }, [search])
 
-  function highLight(index) {
-    let newIndex = index
+  function highlight(index) {
+    let nextIndex = index
 
     if (index < 0) {
-      newIndex = visibleOptions.length - 1
-    } else if (index >= visibleOptions.length) {
-      newIndex = 0
+      nextIndex = selectableOptions.length - 1
+    } else if (index >= selectableOptions.length) {
+      nextIndex = 0
     }
 
-    setHighlightedIndex(newIndex)
-    scrollTo(listRef.current, optionId(newIndex))
-  }
-
-  function onKeyDown(e) {
-    if (e.key === 'Enter') {
-      if (!isOpen || loading || visibleOptions.length === 0) return null
-      selectOption(visibleOptions[highlightedIndex])
-      e.preventDefault()
-    }
-    if (e.key === 'Escape') {
-      if (!isOpen || loading) return null
-      setOpen(false)
-      searchRef.current?.focus()
-      e.preventDefault()
-    }
-    if (e.key === 'ArrowDown') {
-      if (isOpen) {
-        highLight(highlightedIndex + 1)
-      } else {
-        setOpen(true)
-      }
-    }
-    if (e.key === 'ArrowUp') {
-      if (isOpen) {
-        highLight(highlightedIndex - 1)
-      } else {
-        setOpen(true)
-      }
-    }
-  }
-
-  function isOptionDisabled(option) {
-    const optionAlreadySelected = values.some(
-      (val) => val.value === option.value
-    )
-    const optionDisabled = (disabledOptions || []).some(
-      (val) => val?.value === option.value
-    )
-    return optionAlreadySelected || optionDisabled
-  }
-
-  function onInput(e) {
-    if (!isOpen) {
-      setOpen(true)
-    }
-    setSearch(e.target.value)
-  }
-
-  function toggleOpen() {
-    if (!isOpen) {
-      setOpen(true)
-      searchRef.current.focus()
-    } else {
-      setSearch('')
-      setOpen(false)
-    }
+    setHighlightedIndex(nextIndex)
+    scrollTo(listRef.current, optionId(nextIndex))
   }
 
   function selectOption(option) {
     if (singleOption) {
       onSelect([option])
     } else {
-      searchRef.current.focus()
       onSelect([...values, option])
     }
 
     setOpen(false)
     setSearch('')
+    requestAnimationFrame(() => searchRef.current?.focus())
   }
 
-  function removeOption(option, e) {
-    e.stopPropagation()
-    const newValues = values.filter((val) => val.value !== option.value)
-    onSelect(newValues)
-    searchRef.current.focus()
+  function onKeyDown(event) {
+    if (event.key === 'Enter') {
+      if (!isOpen || loading || selectableOptions.length === 0) return
+      selectOption(selectableOptions[highlightedIndex])
+      event.preventDefault()
+    } else if (event.key === 'Escape') {
+      if (!isOpen || loading) return
+      setOpen(false)
+      setSearch('')
+      searchRef.current?.focus()
+      event.preventDefault()
+      event.stopPropagation()
+    } else if (event.key === 'ArrowDown') {
+      if (isOpen) {
+        highlight(highlightedIndex + 1)
+      } else {
+        setOpen(true)
+      }
+      event.preventDefault()
+    } else if (event.key === 'ArrowUp') {
+      if (isOpen) {
+        highlight(highlightedIndex - 1)
+      } else {
+        setOpen(true)
+      }
+      event.preventDefault()
+    }
+  }
+
+  function isOptionDisabled(option) {
+    return (
+      values.some((value) => value.value === option.value) ||
+      (disabledOptions || []).some((value) => value?.value === option.value)
+    )
+  }
+
+  function onInput(event) {
+    if (!isOpen) setOpen(true)
+    setSearch(event.target.value)
+  }
+
+  function toggleOpen(event) {
+    if (isDisabled || event.target.closest('button')) return
+    setOpen((current) => !current)
+    requestAnimationFrame(() => searchRef.current?.focus())
+  }
+
+  function removeOption(option, event) {
+    event.preventDefault()
+    event.stopPropagation()
+    onSelect(values.filter((value) => value.value !== option.value))
+    searchRef.current?.focus()
     setOpen(false)
   }
 
-  const handleClick = useCallback((e) => {
-    if (containerRef.current && containerRef.current.contains(e.target)) {
-      return
-    }
-
+  const handleOutsidePointer = useCallback((event) => {
+    if (containerRef.current?.contains(event.target)) return
     setSearch('')
     setOpen(false)
   }, [])
 
   useEffect(() => {
-    document.addEventListener('mousedown', handleClick, false)
-    return () => {
-      document.removeEventListener('mousedown', handleClick, false)
-    }
-  }, [handleClick])
+    document.addEventListener('mousedown', handleOutsidePointer, false)
+    return () =>
+      document.removeEventListener('mousedown', handleOutsidePointer, false)
+  }, [handleOutsidePointer])
 
   useEffect(() => {
-    if (singleOption && isEmpty && autoFocus) {
-      searchRef.current.focus()
-    }
+    if (singleOption && isEmpty && autoFocus) searchRef.current?.focus()
   }, [isEmpty, singleOption, autoFocus])
 
-  const searchBoxClass =
-    'border-none py-1 px-0 w-full inline-block rounded-md focus:outline-hidden focus:ring-0 text-sm'
-
-  const containerClass = classNames('relative w-full', {
-    [className]: !!className,
-    'opacity-30 cursor-default pointer-events-none': isDisabled
-  })
-
-  function renderSingleOptionContent() {
-    const itemSelected = values.length === 1
-
-    return (
-      <div className="flex items-center truncate">
-        {itemSelected && renderSingleSelectedItem()}
-        <input
-          className={searchBoxClass}
-          ref={searchRef}
-          value={search}
-          style={{ backgroundColor: 'inherit' }}
-          placeholder={itemSelected ? '' : placeholder}
-          type="text"
-          onChange={onInput}
-        ></input>
-      </div>
-    )
-  }
-
-  function renderSingleSelectedItem() {
-    if (search === '') {
-      return (
-        <span className="dark:text-gray-300 text-sm w-0">
-          {values[0].label}
-        </span>
-      )
-    }
-  }
-
-  function renderMultiOptionContent() {
-    return (
-      <>
-        {values.map((value) => {
-          return (
-            <div
-              key={value.value}
-              className="bg-indigo-100 dark:bg-indigo-600 flex justify-between w-full rounded-xs px-2 py-0.5 m-0.5 text-sm"
-            >
-              <span className="break-all">{value.label}</span>
-              <span
-                onClick={(e) => removeOption(value, e)}
-                className="cursor-pointer font-bold ml-1"
-              >
-                &times;
-              </span>
-            </div>
-          )
-        })}
-        <input
-          className={searchBoxClass}
-          ref={searchRef}
-          value={search}
-          style={{ backgroundColor: 'inherit' }}
-          placeholder={placeholder}
-          type="text"
-          onChange={onInput}
-        ></input>
-      </>
-    )
-  }
-
-  function renderDropDownContent() {
-    const matchesFound =
-      visibleOptions.length > 0 &&
-      visibleOptions.some((option) => !isOptionDisabled(option))
-
-    if (loading) {
-      return (
-        <div className="relative cursor-default select-none py-2 px-4 text-gray-700 dark:text-gray-300">
-          Loading options...
-        </div>
-      )
-    }
-
-    if (matchesFound) {
-      return visibleOptions
-        .filter((option) => !isOptionDisabled(option))
-        .map((option, i) => {
-          const text = option.freeChoice
-            ? `Filter by '${option.label}'`
-            : option.label
-
-          return (
-            <Option
-              key={option.value}
-              id={optionId(i)}
-              isHighlighted={highlightedIndex === i}
-              onClick={() => selectOption(option)}
-              onMouseEnter={() => setHighlightedIndex(i)}
-              text={text}
-            />
-          )
-        })
-    }
-
-    if (freeChoice) {
-      return (
-        <div className="relative cursor-default select-none py-2 px-4 text-gray-700 dark:text-gray-300">
-          Start typing to apply filter
-        </div>
-      )
-    }
-
-    return (
-      <div className="relative cursor-default select-none py-2 px-4 text-gray-700 dark:text-gray-300">
-        No matches found in the current dashboard. Try selecting a different
-        time range or searching for something different
-      </div>
-    )
-  }
-
-  const defaultBoxClass =
-    'pl-2 pr-8 py-1 w-full dark:bg-gray-750 dark:text-gray-300 rounded-md shadow-xs border border-gray-300 dark:border-gray-750'
-  const finalBoxClass = classNames(boxClass || defaultBoxClass, {
-    'ring-3 ring-indigo-500/20 dark:ring-indigo-500/25 border !border-indigo-500':
-      isOpen
-  })
+  const selectableOptions = visibleOptions.filter(
+    (option) => !isOptionDisabled(option)
+  )
+  const highlightedOption = selectableOptions[highlightedIndex]
+  const emptyMessage = freeChoice
+    ? 'Start typing to apply filter'
+    : 'No matches found in the current dashboard. Try selecting a different time range or searching for something different.'
 
   return (
-    <div onKeyDown={onKeyDown} ref={containerRef} className={containerClass}>
-      <div onClick={toggleOpen} className={finalBoxClass}>
-        {singleOption && renderSingleOptionContent()}
-        {!singleOption && renderMultiOptionContent()}
-        <div className="cursor-pointer absolute inset-y-0 right-0 flex items-center pr-2">
-          {!loading && <ChevronDownIcon className="h-4 w-4 text-gray-500" />}
-          {loading && <Spinner />}
-        </div>
-      </div>
+    <div
+      ref={containerRef}
+      className={classNames('relative w-full', className, {
+        'pointer-events-none cursor-default opacity-50': isDisabled
+      })}
+      onKeyDown={onKeyDown}
+    >
+      <InputGroup
+        aria-disabled={isDisabled}
+        className={classNames(
+          'h-auto min-h-8 flex-wrap gap-1 px-1.5 py-1',
+          isOpen && 'border-ring ring-3 ring-ring/50',
+          boxClass
+        )}
+        data-disabled={isDisabled}
+        onClick={toggleOpen}
+      >
+        {!singleOption &&
+          values.map((value) => (
+            <Badge key={value.value} variant="secondary" className="max-w-full">
+              <span className="truncate">{value.label}</span>
+              <Button
+                aria-label={`Remove ${value.label}`}
+                className="-mr-1 size-4 rounded-full p-0"
+                onClick={(event) => removeOption(value, event)}
+                size="icon-xs"
+                variant="ghost"
+              >
+                <DashboardIcon icon={Cancel01Icon} className="size-3" />
+              </Button>
+            </Badge>
+          ))}
+
+        <InputGroupInput
+          ref={searchRef}
+          aria-autocomplete="list"
+          aria-controls="plausible-combobox-list"
+          aria-expanded={isOpen}
+          aria-label={placeholder}
+          autoComplete="off"
+          className={classNames(
+            'min-w-24 flex-1 px-1.5',
+            singleOption && values.length === 1 && 'placeholder:text-foreground'
+          )}
+          disabled={isDisabled}
+          onChange={onInput}
+          placeholder={
+            singleOption && values.length === 1 && search === ''
+              ? values[0].label
+              : placeholder
+          }
+          role="combobox"
+          type="text"
+          value={search}
+        />
+
+        <InputGroupAddon align="inline-end" className="pr-1.5">
+          <DashboardIcon
+            icon={loading ? Loading03Icon : ArrowDown01Icon}
+            className={classNames('size-4', loading && 'animate-spin')}
+          />
+        </InputGroupAddon>
+      </InputGroup>
+
       {isOpen && (
-        <Transition
-          as={Fragment}
-          leave="transition ease-in duration-100"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-          show={isOpen}
+        <Command
+          className="absolute z-50 mt-1 h-auto max-h-60 w-full rounded-lg bg-popover shadow-md ring-1 ring-foreground/10"
+          shouldFilter={false}
+          value={highlightedOption ? String(highlightedOption.value) : ''}
         >
-          <ul
-            ref={listRef}
-            className="z-50 absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1/5 ring-black focus:outline-hidden sm:text-sm dark:bg-gray-800"
-          >
-            {renderDropDownContent()}
-          </ul>
-        </Transition>
+          <CommandList id="plausible-combobox-list" ref={listRef}>
+            {loading ? (
+              <div className="flex items-center gap-2 px-2 py-3 text-sm text-muted-foreground">
+                <DashboardIcon
+                  icon={Loading03Icon}
+                  className="size-4 animate-spin"
+                />
+                Loading options...
+              </div>
+            ) : selectableOptions.length > 0 ? (
+              selectableOptions.map((option, index) => (
+                <CommandItem
+                  id={optionId(index)}
+                  key={option.value}
+                  aria-selected={highlightedIndex === index}
+                  className={classNames(
+                    highlightedIndex === index && 'bg-muted text-foreground'
+                  )}
+                  onMouseEnter={() => setHighlightedIndex(index)}
+                  onSelect={() => selectOption(option)}
+                  value={String(option.value)}
+                >
+                  <span className="truncate">
+                    {option.freeChoice
+                      ? `Filter by '${option.label}'`
+                      : option.label}
+                  </span>
+                </CommandItem>
+              ))
+            ) : (
+              <div className="px-2 py-3 text-sm text-muted-foreground">
+                {emptyMessage}
+              </div>
+            )}
+          </CommandList>
+        </Command>
       )}
     </div>
-  )
-}
-
-function Spinner() {
-  return (
-    <svg
-      className="animate-spin h-4 w-4 text-indigo-500"
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <circle
-        className="opacity-25"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-      ></circle>
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-      ></path>
-    </svg>
   )
 }

@@ -55,7 +55,7 @@ function EntryPages({ afterFetchData }) {
         search: (search) => search
       }}
       getExternalLinkUrl={getExternalLinkUrl}
-      color="bg-orange-50 group-hover/row:bg-orange-100"
+      color="bg-primary/10 group-hover/row:bg-primary/20"
     />
   )
 }
@@ -103,7 +103,7 @@ function ExitPages({ afterFetchData }) {
         search: (search) => search
       }}
       getExternalLinkUrl={getExternalLinkUrl}
-      color="bg-orange-50 group-hover/row:bg-orange-100"
+      color="bg-primary/10 group-hover/row:bg-primary/20"
     />
   )
 }
@@ -147,7 +147,7 @@ function TopPages({ afterFetchData }) {
         search: (search) => search
       }}
       getExternalLinkUrl={getExternalLinkUrl}
-      color="bg-orange-50 group-hover/row:bg-orange-100"
+      color="bg-primary/10 group-hover/row:bg-primary/20"
     />
   )
 }
@@ -197,7 +197,7 @@ export default function Pages() {
       {/* Header Container */}
       <div className="w-full flex justify-between">
         <div className="flex gap-x-1">
-          <h3 className="font-bold dark:text-gray-100">
+          <h3 className="font-bold text-foreground">
             {labelFor[mode] || 'Page Visits'}
           </h3>
           <ImportedQueryUnsupportedWarning

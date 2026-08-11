@@ -1,9 +1,11 @@
 import React from 'react'
-import { BarsArrowUpIcon } from '@heroicons/react/20/solid'
 import classNames from 'classnames'
 import { useQueryContext } from '../../query-context'
 import { AppNavigationLink } from '../../navigation/use-app-navigate'
 import { Tooltip } from '../../util/tooltip'
+import { ChartIncreaseIcon } from '@hugeicons/core-free-icons'
+import { DashboardIcon } from '../../components/dashboard-icon'
+import { buttonVariants } from '../../components/ui/button'
 
 export default function WithImportedSwitch({
   tooltipMessage,
@@ -16,24 +18,31 @@ export default function WithImportedSwitch({
   const importsSwitchedOn = query.with_imported
 
   const iconClass = classNames('size-4', {
-    'dark:text-gray-300 text-gray-700': importsSwitchedOn,
-    'dark:text-gray-500 text-gray-400': !importsSwitchedOn
+    'text-foreground': importsSwitchedOn,
+    'text-muted-foreground': !importsSwitchedOn
   })
 
   return (
     <Tooltip
       info={<div className="font-normal truncate">{tooltipMessage}</div>}
-      className="size-4"
+      className="size-7"
     >
       <AppNavigationLink
+        aria-label={
+          importsSwitchedOn ? 'Hide imported data' : 'Show imported data'
+        }
         search={
           disabled
             ? (search) => search
             : (search) => ({ ...search, with_imported: !importsSwitchedOn })
         }
-        className="flex items-center justify-center"
+        className={buttonVariants({
+          variant: 'ghost',
+          size: 'icon-sm',
+          className: 'text-muted-foreground hover:text-foreground'
+        })}
       >
-        <BarsArrowUpIcon className={iconClass} />
+        <DashboardIcon icon={ChartIncreaseIcon} className={iconClass} />
       </AppNavigationLink>
     </Tooltip>
   )

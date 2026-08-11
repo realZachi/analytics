@@ -1,8 +1,12 @@
 import React from 'react'
 import { Metric } from '../../../types/query-api'
 import { numberShortFormatter } from '../../util/number-formatter'
-import { ArrowDownRightIcon, ArrowUpRightIcon } from '@heroicons/react/24/solid'
+import {
+  ArrowDownRight01Icon,
+  ArrowUpRight01Icon
+} from '@hugeicons/core-free-icons'
 import classNames from 'classnames'
+import { DashboardIcon } from '../../components/dashboard-icon'
 
 export function ChangeArrow({
   change,
@@ -18,13 +22,17 @@ export function ChangeArrow({
   let icon = null
   const arrowClassName = classNames(
     color(change, metric),
-    'mb-0.5 inline-block size-3 stroke-[1px] stroke-current'
+    'mb-0.5 inline-block size-3'
   )
 
   if (change > 0) {
-    icon = <ArrowUpRightIcon className={arrowClassName} />
+    icon = (
+      <DashboardIcon icon={ArrowUpRight01Icon} className={arrowClassName} />
+    )
   } else if (change < 0) {
-    icon = <ArrowDownRightIcon className={arrowClassName} />
+    icon = (
+      <DashboardIcon icon={ArrowDownRight01Icon} className={arrowClassName} />
+    )
   }
 
   const formattedChange = hideNumber
@@ -42,5 +50,5 @@ export function ChangeArrow({
 function color(change: number, metric: Metric) {
   const invert = metric === 'bounce_rate'
 
-  return change > 0 != invert ? 'text-green-500' : 'text-red-400'
+  return change > 0 != invert ? 'text-chart-2' : 'text-destructive'
 }

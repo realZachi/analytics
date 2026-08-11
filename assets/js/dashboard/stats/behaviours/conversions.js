@@ -54,7 +54,7 @@ export default function Conversions({ afterFetchData, onGoalFilterClick }) {
         path: conversionsRoute.path,
         search: (search) => search
       }}
-      color="bg-red-50 group-hover/row:bg-red-100"
+      color="bg-destructive/10 group-hover/row:bg-destructive/20"
       colMinWidth={90}
     />
   )

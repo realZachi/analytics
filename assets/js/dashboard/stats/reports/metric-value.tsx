@@ -91,9 +91,7 @@ export default function MetricValue(props: {
       data-testid="metric-value"
     >
       {percentageDisplay && (
-        <span className="mr-3 text-gray-500 dark:text-gray-400">
-          {percentageDisplay}
-        </span>
+        <span className="mr-3 text-muted-foreground">{percentageDisplay}</span>
       )}
       {displayFormatter(value)}
       {comparison ? (
@@ -159,26 +157,26 @@ function ComparisonTooltipContent({
         <div>
           <div className="flex gap-x-4">
             <div className="flex flex-col">
-              <span className="font-medium text-sm/6 text-white">
+              <span className="text-sm/6 font-medium text-background">
                 {longFormatter(value)} {label}
               </span>
-              <div className="font-normal text-xs text-white">
+              <div className="text-xs font-normal text-background">
                 {meta.date_range_label}
               </div>
             </div>
             <ChangeArrow
               metric={metric}
               change={comparison.change}
-              className="text-xs/6 font-medium text-white"
+              className="text-xs/6 font-medium text-background"
             />
           </div>
         </div>
-        <div className="w-full border-t border-gray-600"></div>
+        <div className="w-full border-t border-background/30"></div>
         <div>
-          <div className="font-medium text-sm/6 text-gray-300/80">
+          <div className="text-sm/6 font-medium text-background/80">
             {longFormatter(comparison.value)} {label}
           </div>
-          <div className="font-normal text-xs text-gray-300/80">
+          <div className="text-xs font-normal text-background/80">
             {meta.comparison_date_range_label}
           </div>
         </div>

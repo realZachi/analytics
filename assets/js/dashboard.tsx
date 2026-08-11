@@ -24,6 +24,7 @@ import {
   parsePreloadedSegments,
   SegmentsContextProvider
 } from './dashboard/filtering/segments-context'
+import { TooltipProvider } from './dashboard/components/ui/tooltip'
 
 timer.start()
 
@@ -95,7 +96,9 @@ if (container && container.dataset) {
                 limitedToSegment={limitedToSegment}
                 preloadedSegments={preloadedSegments}
               >
-                <RouterProvider router={router} />
+                <TooltipProvider delay={300}>
+                  <RouterProvider router={router} />
+                </TooltipProvider>
               </SegmentsContextProvider>
             </UserContextProvider>
           </SiteContextProvider>

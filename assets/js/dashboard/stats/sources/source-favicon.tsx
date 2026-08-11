@@ -18,8 +18,7 @@ export const SourceFavicon = ({ name, className }: SourceFaviconProps) => {
       referrerPolicy="no-referrer"
       className={classNames(
         className,
-        needsWhiteBg &&
-          'dark:bg-white dark:border dark:border-white dark:rounded-full'
+        needsWhiteBg && 'rounded-full border border-border bg-background'
       )}
     />
   )

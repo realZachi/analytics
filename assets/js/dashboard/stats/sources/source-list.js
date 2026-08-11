@@ -85,7 +85,7 @@ function AllSources({ afterFetchData }) {
       metrics={chooseMetrics()}
       detailsLinkProps={{ path: sourcesRoute.path, search: (search) => search }}
       renderIcon={renderIcon}
-      color="bg-blue-50 group-hover/row:bg-blue-100"
+      color="bg-chart-2/10 group-hover/row:bg-chart-2/20"
     />
   )
 }
@@ -126,7 +126,7 @@ function Channels({ onClick, afterFetchData }) {
         path: channelsRoute.path,
         search: (search) => search
       }}
-      color="bg-blue-50 group-hover/row:bg-blue-100"
+      color="bg-chart-2/10 group-hover/row:bg-chart-2/20"
     />
   )
 }
@@ -172,7 +172,7 @@ function UTMSources({ tab, afterFetchData }) {
       keyLabel={utmTag.label}
       metrics={chooseMetrics()}
       detailsLinkProps={{ path: route?.path, search: (search) => search }}
-      color="bg-blue-50 group-hover/row:bg-blue-100"
+      color="bg-chart-2/10 group-hover/row:bg-chart-2/20"
     />
   )
 }
@@ -251,9 +251,7 @@ export default function SourceList() {
       {/* Header Container */}
       <div className="w-full flex justify-between">
         <div className="flex gap-x-1">
-          <h3 className="font-bold dark:text-gray-100">
-            {labelFor[currentTab]}
-          </h3>
+          <h3 className="font-bold text-foreground">{labelFor[currentTab]}</h3>
           <ImportedQueryUnsupportedWarning
             loading={loading}
             skipImportedReason={skipImportedReason}

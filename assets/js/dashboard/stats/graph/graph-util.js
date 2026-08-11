@@ -25,21 +25,44 @@ function plottable(dataArray) {
   })
 }
 
-const buildComparisonDataset = function (comparisonPlot) {
+const withAlpha = function (color, alpha) {
+  if (color.startsWith('oklch(')) {
+    return color.replace(/\)$/, ` / ${alpha})`)
+  }
+
+  return color
+}
+
+const chartColors = function (ctx) {
+  const styles = getComputedStyle(ctx.canvas)
+  const line = styles.getPropertyValue('--chart-2').trim() || 'rgb(99 102 241)'
+
+  return {
+    line,
+    lineMuted: withAlpha(line, 0.32),
+    lineSoft: withAlpha(line, 0.16),
+    lineFaint: withAlpha(line, 0.02)
+  }
+}
+
+const buildComparisonDataset = function (comparisonPlot, colors) {
   if (!comparisonPlot) return []
 
   return [
     {
       data: plottable(comparisonPlot),
-      borderColor: 'rgba(60,70,110,0.2)',
-      pointBackgroundColor: 'rgba(60,70,110,0.2)',
-      pointHoverBackgroundColor: 'rgba(60, 70, 110)',
+      backgroundColor: 'transparent',
+      borderColor: colors.lineMuted,
+      borderDash: [6, 5],
+      fill: false,
+      pointBackgroundColor: colors.lineMuted,
+      pointHoverBackgroundColor: colors.line,
       yAxisID: 'yComparison'
     }
   ]
 }
 
-const buildDashedDataset = function (plot, presentIndex) {
+const buildDashedDataset = function (plot, presentIndex, colors, gradient) {
   if (!presentIndex) return []
 
   const dashedPart = plot.slice(presentIndex - 1, presentIndex + 1)
@@ -48,23 +71,28 @@ const buildDashedDataset = function (plot, presentIndex) {
   return [
     {
       data: plottable(dashedPlot),
-      borderDash: [3, 3],
-      borderColor: 'rgba(101,116,205)',
-      pointHoverBackgroundColor: 'rgba(71, 87, 193)',
+      backgroundColor: gradient,
+      borderColor: colors.line,
+      borderDash: [5, 4],
+      fill: true,
+      pointBackgroundColor: colors.line,
+      pointHoverBackgroundColor: colors.line,
       yAxisID: 'y'
     }
   ]
 }
 
-const buildMainPlotDataset = function (plot, presentIndex) {
+const buildMainPlotDataset = function (plot, presentIndex, colors, gradient) {
   const data = presentIndex ? plot.slice(0, presentIndex) : plot
 
   return [
     {
       data: plottable(data),
-      borderColor: 'rgba(101,116,205)',
-      pointBackgroundColor: 'rgba(101,116,205)',
-      pointHoverBackgroundColor: 'rgba(71, 87, 193)',
+      backgroundColor: gradient,
+      borderColor: colors.line,
+      fill: true,
+      pointBackgroundColor: colors.line,
+      pointHoverBackgroundColor: colors.line,
       yAxisID: 'y'
     }
   ]
@@ -77,29 +105,31 @@ export const buildDataSet = (
   ctx,
   label
 ) => {
-  var gradient = ctx.createLinearGradient(0, 0, 0, 300)
-  var prev_gradient = ctx.createLinearGradient(0, 0, 0, 300)
-  gradient.addColorStop(0, 'rgba(101,116,205, 0.2)')
-  gradient.addColorStop(1, 'rgba(101,116,205, 0)')
-  prev_gradient.addColorStop(0, 'rgba(101,116,205, 0.075)')
-  prev_gradient.addColorStop(1, 'rgba(101,116,205, 0)')
+  const colors = chartColors(ctx)
+  const gradient = ctx.createLinearGradient(
+    0,
+    0,
+    0,
+    Math.max(ctx.canvas.clientHeight, 280)
+  )
+  gradient.addColorStop(0, colors.lineSoft)
+  gradient.addColorStop(1, colors.lineFaint)
 
   const defaultOptions = {
     label,
-    borderWidth: 2,
+    borderWidth: 2.25,
     pointBorderColor: 'transparent',
-    pointHoverRadius: 3,
-    backgroundColor: gradient,
-    fill: true
+    pointHoverBorderColor: colors.line,
+    pointHoverRadius: 4
   }
 
   const dataset = [
-    ...buildMainPlotDataset(plot, present_index),
-    ...buildDashedDataset(plot, present_index),
-    ...buildComparisonDataset(comparisonPlot)
+    ...buildMainPlotDataset(plot, present_index, colors, gradient),
+    ...buildDashedDataset(plot, present_index, colors, gradient),
+    ...buildComparisonDataset(comparisonPlot, colors)
   ]
 
-  return dataset.map((item) => Object.assign(item, defaultOptions))
+  return dataset.map((item) => ({ ...defaultOptions, ...item }))
 }
 
 export function hasMultipleYears(graphData) {

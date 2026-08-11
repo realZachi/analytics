@@ -1,5 +1,6 @@
 import React from 'react'
+import { Separator } from '../components/ui/separator'
 
 export const MenuSeparator = () => (
-  <div className="my-0.5 -mx-1 border-gray-200 dark:border-gray-700 border-b" />
+  <Separator className="my-1 -mx-1 bg-border" />
 )

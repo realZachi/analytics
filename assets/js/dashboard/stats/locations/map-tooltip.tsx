@@ -18,14 +18,12 @@ export const MapTooltip = ({ name, value, label, x, y }: MapTooltipProps) => (
       'translate-x-2',
       'translate-y-2',
       'pointer-events-none',
-      'rounded-sm',
-      'bg-white',
-      'dark:bg-gray-800',
-      'shadow',
-      'dark:border-gray-850',
-      'dark:text-gray-200',
-      'dark:shadow-gray-850',
-      'shadow-gray-200'
+      'rounded-md',
+      'border',
+      'border-border',
+      'bg-popover',
+      'text-popover-foreground',
+      'shadow-md'
     )}
     style={{
       left: x,
@@ -33,6 +31,6 @@ export const MapTooltip = ({ name, value, label, x, y }: MapTooltipProps) => (
     }}
   >
     <div className="font-semibold">{name}</div>
-    <strong className="dark:text-indigo-400">{value}</strong> {label}
+    <strong className="text-primary">{value}</strong> {label}
   </div>
 )

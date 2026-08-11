@@ -1,33 +1,28 @@
-import React, { ReactNode, RefObject } from 'react'
+import React, { ReactNode } from 'react'
 import classNames from 'classnames'
-import { popover } from '../../components/popover'
-import { ChevronDownIcon } from '@heroicons/react/20/solid'
-import { Popover, Transition } from '@headlessui/react'
+import { ArrowDown01Icon } from '@hugeicons/core-free-icons'
+import { DashboardIcon } from '../../components/dashboard-icon'
+import { PopoverContent } from '../../components/ui/popover'
 
 export const linkClassName = classNames(
-  popover.items.classNames.navigationLink,
-  popover.items.classNames.selectedOption,
-  popover.items.classNames.hoverLink
+  'flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium text-foreground outline-none transition-colors',
+  'hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring/50',
+  'data-[selected=true]:bg-accent data-[selected=true]:font-semibold data-[selected=true]:text-accent-foreground'
 )
 
 export const datemenuButtonClassName = classNames(
-  popover.toggleButton.classNames.rounded,
-  popover.toggleButton.classNames.shadow,
-  'justify-between px-2 w-full'
+  'w-full justify-between bg-card px-2 font-medium text-foreground shadow-sm'
 )
 
-export const hiddenCalendarButtonClassName = 'flex h-9 w-0 outline-none'
+export const hiddenCalendarButtonClassName =
+  'absolute h-9 w-px overflow-hidden opacity-0 pointer-events-none'
 
 export const DateMenuChevron = () => (
-  <ChevronDownIcon className="hidden lg:inline-block h-4 w-4 md:h-5 md:w-5 ml-1 md:ml-2 text-gray-500" />
+  <DashboardIcon
+    icon={ArrowDown01Icon}
+    className="ml-1 hidden size-4 text-muted-foreground lg:inline-block md:ml-2 md:size-5"
+  />
 )
-
-export interface PopoverMenuProps {
-  closeDropdown: () => void
-  calendarButtonRef: RefObject<HTMLButtonElement>
-}
-
-const calendarPositionClassName = '*:!top-auto *:!right-0 *:!absolute'
 
 type CalendarPanelProps = {
   className?: string
@@ -39,18 +34,12 @@ export const CalendarPanel = React.forwardRef<
   CalendarPanelProps
 >(({ children, className }, ref) => {
   return (
-    <Transition
-      as="div"
-      {...popover.transition.props}
-      className={classNames(
-        popover.transition.classNames.fullwidth,
-        'md:left-auto md:origin-top-right',
-        className
-      )}
+    <PopoverContent
+      ref={ref}
+      align="end"
+      className={classNames('w-auto gap-0 p-0', className)}
     >
-      <Popover.Panel ref={ref} className={calendarPositionClassName}>
-        {children}
-      </Popover.Panel>
-    </Transition>
+      {children}
+    </PopoverContent>
   )
 })

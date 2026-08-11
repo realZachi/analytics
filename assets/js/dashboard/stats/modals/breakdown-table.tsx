@@ -1,12 +1,16 @@
 import React, { ReactNode, useRef } from 'react'
-import { XMarkIcon } from '@heroicons/react/20/solid'
+import { Cancel01Icon, Loading03Icon } from '@hugeicons/core-free-icons'
 
 import { SearchInput } from '../../components/search-input'
 import { ColumnConfiguraton, Table } from '../../components/table'
-import RocketIcon from './rocket-icon'
 import { QueryStatus } from '@tanstack/react-query'
 import { useAppNavigate } from '../../navigation/use-app-navigate'
 import { rootRoute } from '../../router'
+import { Button } from '../../components/ui/button'
+import { Separator } from '../../components/ui/separator'
+import { Skeleton } from '../../components/ui/skeleton'
+import { DashboardIcon } from '../../components/dashboard-icon'
+import { ErrorPanel } from '../../components/error-panel'
 
 export const BreakdownTable = <TListItem extends { name: string }>({
   title,
@@ -47,7 +51,7 @@ export const BreakdownTable = <TListItem extends { name: string }>({
     <>
       <div className="flex justify-between items-center gap-4">
         <div className="flex items-center gap-4 w-full">
-          <h1 className="shrink-0 mb-0.5 text-base md:text-lg font-bold dark:text-gray-100">
+          <h1 className="mb-0.5 shrink-0 font-heading text-base font-medium text-foreground md:text-lg">
             {title}
           </h1>
           {!isPending && isFetching && <SmallLoadingSpinner />}
@@ -61,16 +65,17 @@ export const BreakdownTable = <TListItem extends { name: string }>({
             />
           )}
         </div>
-        <button
+        <Button
           type="button"
           onClick={handleClose}
           aria-label="Close modal"
-          className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+          size="icon-sm"
+          variant="ghost"
         >
-          <XMarkIcon className="size-5" />
-        </button>
+          <DashboardIcon icon={Cancel01Icon} className="size-4" />
+        </Button>
       </div>
-      <div className="my-3 md:my-4 border-b border-gray-250 dark:border-gray-750"></div>
+      <Separator className="my-3 md:my-4" />
       <div className="flex-1 overflow-auto pr-4 -mr-4">
         {displayError && status === 'error' && <ErrorMessage error={error} />}
         {isPending && <InitialLoadingSpinner />}
@@ -87,30 +92,29 @@ export const BreakdownTable = <TListItem extends { name: string }>({
 }
 
 const InitialLoadingSpinner = () => (
-  <div className="w-full h-full flex flex-col justify-center">
-    <div className="mx-auto loading">
-      <div />
-    </div>
+  <div className="grid w-full gap-2 py-2" aria-label="Loading report">
+    {Array.from({ length: 8 }).map((_, index) => (
+      <Skeleton key={index} className="h-8 w-full" />
+    ))}
   </div>
 )
 
 const SmallLoadingSpinner = () => (
-  <div className="loading sm">
-    <div />
-  </div>
+  <DashboardIcon
+    icon={Loading03Icon}
+    className="size-4 animate-spin text-muted-foreground"
+  />
 )
 
 const ErrorMessage = ({ error }: { error?: unknown }) => (
-  <div className="grid grid-rows-2 text-gray-700 dark:text-gray-300">
-    <div className="text-center self-end">
-      <RocketIcon />
-    </div>
-    <div className="text-lg text-center">
-      {error
+  <ErrorPanel
+    className="mx-auto mt-8 max-w-lg"
+    errorMessage={
+      error
         ? (error as { message: string }).message
-        : 'Error loading data. Refresh the page to try again'}
-    </div>
-  </div>
+        : 'Error loading data. Refresh the page to try again'
+    }
+  />
 )
 
 const LoadMore = ({
@@ -124,9 +128,9 @@ const LoadMore = ({
     {isFetchingNextPage ? (
       <SmallLoadingSpinner />
     ) : (
-      <button onClick={onClick} type="button" className="button">
+      <Button onClick={onClick} type="button">
         Load more
-      </button>
+      </Button>
     )}
   </div>
 )

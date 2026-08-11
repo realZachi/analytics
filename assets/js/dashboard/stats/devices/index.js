@@ -20,6 +20,13 @@ import {
   screenSizesRoute
 } from '../../router'
 import { TabButton, TabWrapper } from '../../components/tabs'
+import {
+  ComputerIcon,
+  LaptopIcon,
+  SmartPhone01Icon,
+  Tablet01Icon
+} from '@hugeicons/core-free-icons'
+import { DashboardIcon } from '../../components/dashboard-icon'
 
 // Icons copied from https://github.com/alrra/browser-logos
 const BROWSER_ICONS = {
@@ -309,92 +316,18 @@ function ScreenSizes({ afterFetchData }) {
 }
 
 export function screenSizeIconFor(screenSize) {
-  let svg = null
+  const icon = {
+    Mobile: SmartPhone01Icon,
+    Tablet: Tablet01Icon,
+    Laptop: LaptopIcon,
+    Desktop: ComputerIcon
+  }[screenSize]
 
-  if (screenSize === 'Mobile') {
-    svg = (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="-mt-px feather"
-      >
-        <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
-        <line x1="12" y1="18" x2="12" y2="18" />
-      </svg>
-    )
-  } else if (screenSize === 'Tablet') {
-    svg = (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="-mt-px feather"
-      >
-        <rect
-          x="4"
-          y="2"
-          width="16"
-          height="20"
-          rx="2"
-          ry="2"
-          transform="rotate(180 12 12)"
-        />
-        <line x1="12" y1="18" x2="12" y2="18" />
-      </svg>
-    )
-  } else if (screenSize === 'Laptop') {
-    svg = (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="-mt-px feather"
-      >
-        <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-        <line x1="2" y1="20" x2="22" y2="20" />
-      </svg>
-    )
-  } else if (screenSize === 'Desktop') {
-    svg = (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="-mt-px feather"
-      >
-        <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-        <line x1="8" y1="21" x2="16" y2="21" />
-        <line x1="12" y1="17" x2="12" y2="21" />
-      </svg>
-    )
-  }
-
-  return <span className="mr-1.5">{svg}</span>
+  return (
+    <span className="mr-1.5">
+      {icon && <DashboardIcon icon={icon} className="-mt-px size-5" />}
+    </span>
+  )
 }
 
 export default function Devices() {
@@ -441,7 +374,7 @@ export default function Devices() {
     <div className="overflow-x-hidden">
       <div className="flex justify-between w-full">
         <div className="flex gap-x-1">
-          <h3 className="font-bold dark:text-gray-100">Devices</h3>
+          <h3 className="font-bold text-foreground">Devices</h3>
           <ImportedQueryUnsupportedWarning
             loading={loading}
             skipImportedReason={skipImportedReason}

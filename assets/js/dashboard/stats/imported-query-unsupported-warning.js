@@ -1,7 +1,9 @@
 import React from 'react'
-import { ExclamationCircleIcon } from '@heroicons/react/24/outline'
 import FadeIn from '../fade-in'
 import { useQueryContext } from '../query-context'
+import { Tooltip } from '../util/tooltip'
+import { AlertCircleIcon } from '@hugeicons/core-free-icons'
+import { DashboardIcon } from '../components/dashboard-icon'
 
 export default function ImportedQueryUnsupportedWarning({
   loading,
@@ -21,9 +23,15 @@ export default function ImportedQueryUnsupportedWarning({
   if (show || altCondition) {
     return (
       <FadeIn show={!loading} className="h-6">
-        <span tooltip={tooltipMessage}>
-          <ExclamationCircleIcon className="w-6 h-6 dark:text-gray-100" />
-        </span>
+        <Tooltip
+          info={<span className="font-normal">{tooltipMessage}</span>}
+          className="size-6 cursor-default"
+        >
+          <DashboardIcon
+            icon={AlertCircleIcon}
+            className="size-6 text-foreground"
+          />
+        </Tooltip>
       </FadeIn>
     )
   } else {

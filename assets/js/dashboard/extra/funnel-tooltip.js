@@ -14,6 +14,9 @@ export default function FunnelTooltip(palette, funnel) {
       document.body.appendChild(tooltipEl)
     }
 
+    tooltipEl.className =
+      'chartjs-tooltip pointer-events-none absolute z-[100] min-w-[220px] rounded-md bg-foreground px-4 py-3 text-sm font-normal text-background shadow-lg'
+
     if (tooltipEl && offset) {
       tooltipEl.style.opacity = 1
     }
@@ -28,10 +31,10 @@ export default function FunnelTooltip(palette, funnel) {
       const previousStep = dataIndex > 0 ? funnel.steps[dataIndex - 1] : null
 
       tooltipEl.innerHTML = `
-        <aside class="text-gray-100 flex flex-col">
-          <div class="flex justify-between items-center border-b-2 border-gray-700 pb-2">
+        <aside class="flex flex-col text-background">
+          <div class="flex items-center justify-between border-b-2 border-background/30 pb-2">
             <span class="font-semibold mr-4 text-lg">${previousStep ? `<span class="mr-2">${previousStep.label}</span>` : ''}
-              <span class="text-gray-500 mr-2">→</span>
+              <span class="mr-2 text-background/60">→</span>
               ${tooltipModel.title}
             </span>
           </div>

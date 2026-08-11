@@ -7,6 +7,7 @@
 
 import React from 'react'
 import classNames from 'classnames'
+import { Skeleton } from './ui/skeleton'
 
 const MIN_HEIGHT = 380
 
@@ -27,8 +28,14 @@ export const LiveViewPortal = React.memo(
           className="w-full flex flex-col justify-center group-has-[[data-phx-teleported]]:hidden"
           style={{ minHeight: MIN_HEIGHT }}
         >
-          <div className="mx-auto loading">
-            <div />
+          <div className="grid w-full gap-2 px-4" aria-label="Loading report">
+            <div className="mb-2 flex justify-between">
+              <Skeleton className="h-5 w-28" />
+              <Skeleton className="h-5 w-40" />
+            </div>
+            {Array.from({ length: 8 }).map((_, index) => (
+              <Skeleton key={index} className="h-8 w-full" />
+            ))}
           </div>
         </div>
       </div>

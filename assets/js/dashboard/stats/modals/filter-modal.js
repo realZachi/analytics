@@ -1,5 +1,5 @@
 import React from 'react'
-import { XMarkIcon } from '@heroicons/react/20/solid'
+import { Cancel01Icon } from '@hugeicons/core-free-icons'
 import { useParams } from 'react-router-dom'
 
 import Modal from './modal'
@@ -22,6 +22,9 @@ import { useAppNavigate } from '../../navigation/use-app-navigate'
 import { SegmentModal } from '../../segments/segment-modals'
 import { findAppliedSegmentFilter } from '../../filtering/segments'
 import { removeFilterButtonClassname } from '../../components/remove-filter-button'
+import { Button } from '../../components/ui/button'
+import { Separator } from '../../components/ui/separator'
+import { DashboardIcon } from '../../components/dashboard-icon'
 
 function partitionFilters(modalType, filters) {
   const otherFilters = []
@@ -180,20 +183,21 @@ class FilterModal extends React.Component {
     return (
       <Modal maxWidth="460px" allowScroll={true} onClose={this.closeModal}>
         <div className="flex items-center justify-between gap-3">
-          <h1 className="text-base md:text-lg font-bold dark:text-gray-100">
+          <h1 className="font-heading text-base font-medium text-foreground md:text-lg">
             Filter by {formatFilterGroup(this.props.modalType)}
           </h1>
-          <button
+          <Button
             type="button"
             onClick={this.closeModal}
             aria-label="Close modal"
-            className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+            size="icon-sm"
+            variant="ghost"
           >
-            <XMarkIcon className="size-5" />
-          </button>
+            <DashboardIcon icon={Cancel01Icon} className="size-4" />
+          </Button>
         </div>
 
-        <div className="mt-2 md:mt-4 border-b border-gray-300 dark:border-gray-700"></div>
+        <Separator className="mt-2 md:mt-4" />
         <main>
           <form
             className="flex flex-col"
@@ -212,17 +216,14 @@ class FilterModal extends React.Component {
             ))}
 
             <div className="mt-6 mb-3 flex gap-x-4 items-center justify-start">
-              <button
-                type="submit"
-                className="button !px-3"
-                disabled={this.isDisabled()}
-              >
+              <Button type="submit" disabled={this.isDisabled()}>
                 Apply filter
-              </button>
+              </Button>
 
               {this.state.hasRelevantFilters && (
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
                   className={removeFilterButtonClassname}
                   onClick={() => {
                     this.selectFiltersAndCloseModal(this.state.otherFilters)
@@ -231,7 +232,7 @@ class FilterModal extends React.Component {
                   {FILTER_MODAL_TO_FILTER_GROUP[this.props.modalType].length > 1
                     ? 'Remove filters'
                     : 'Remove filter'}
-                </button>
+                </Button>
               )}
             </div>
           </form>

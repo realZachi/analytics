@@ -1,29 +1,31 @@
 import React, { useEffect } from 'react'
 import classNames from 'classnames'
-import { Popover, Transition } from '@headlessui/react'
-import { popover } from '../../components/popover'
 import {
   AppNavigationLink,
   useAppNavigate
 } from '../../navigation/use-app-navigate'
 import {
-  Square2StackIcon,
-  TrashIcon,
-  XMarkIcon
-} from '@heroicons/react/24/outline'
-import { ChevronDownIcon } from '@heroicons/react/20/solid'
+  ArrowDown01Icon,
+  Cancel01Icon,
+  Copy01Icon,
+  Delete02Icon
+} from '@hugeicons/core-free-icons'
 import { useQueryContext } from '../../query-context'
 import { useRoutelessModalsContext } from '../../navigation/routeless-modals-context'
 import { SavedSegment } from '../../filtering/segments'
 import { DashboardQuery } from '../../query'
+import { DashboardIcon } from '../../components/dashboard-icon'
+import { Button, buttonVariants } from '../../components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '../../components/ui/dropdown-menu'
 
 const linkClassName = classNames(
-  popover.items.classNames.navigationLink,
-  popover.items.classNames.selectedOption,
-  popover.items.classNames.hoverLink
-)
-const buttonClassName = classNames(
-  'text-white font-medium bg-indigo-600 hover:bg-indigo-700'
+  'w-full rounded-md px-3 py-2 text-sm font-medium text-foreground',
+  'focus:bg-accent focus:text-accent-foreground'
 )
 
 export const useClearExpandedSegmentModeOnFilterClear = ({
@@ -57,100 +59,81 @@ export const SegmentMenu = () => {
   }
 
   return (
-    <div className="flex shadow-sm">
-      <AppNavigationLink
+    <div className="flex rounded-lg shadow-sm">
+      <Button
+        render={
+          <AppNavigationLink
+            search={(s) => s}
+            state={{ expandedSegment }}
+            onClick={() => {
+              setModal('update')
+            }}
+          />
+        }
+        nativeButton={false}
+        size="lg"
         className={classNames(
-          popover.toggleButton.classNames.rounded,
-          buttonClassName,
-          'rounded-r-none',
-          'position:relative focus:z-10'
+          'relative rounded-e-none px-3 font-medium',
+          'focus:z-10'
         )}
-        search={(s) => s}
-        state={{ expandedSegment }}
-        onClick={() => {
-          setModal('update')
-        }}
       >
-        <span className="px-2 whitespace-nowrap">Update segment</span>
-      </AppNavigationLink>
-      <Popover className="md:relative">
-        {({ close: closeDropdown }) => (
-          <>
-            <Popover.Button
-              className={classNames(
-                popover.toggleButton.classNames.rounded,
-                buttonClassName,
-                'rounded-l-none',
-                'border-1 border-l border-indigo-800',
-                'w-9 justify-center'
-              )}
-            >
-              <ChevronDownIcon
-                className="w-4 h-4 md:h-5 md:w-5 block"
-                aria-hidden="true"
+        <span className="whitespace-nowrap">Update segment</span>
+      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          aria-label="More segment actions"
+          className={buttonVariants({
+            size: 'icon-lg',
+            className: 'rounded-s-none border-s border-primary-foreground/30'
+          })}
+        >
+          <DashboardIcon icon={ArrowDown01Icon} className="size-4" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56 p-1">
+          <DropdownMenuItem
+            render={
+              <AppNavigationLink
+                search={(s) => s}
+                state={{ expandedSegment }}
+                onClick={() => setModal('create')}
               />
-            </Popover.Button>
-            <Transition
-              as="div"
-              {...popover.transition.props}
-              className={classNames(
-                popover.transition.classNames.fullwidth,
-                'mt-2 md:w-auto md:left-auto md:origin-top-right'
-              )}
-            >
-              <Popover.Panel className={popover.panel.classNames.roundedSheet}>
-                <AppNavigationLink
-                  className={linkClassName}
-                  search={(s) => s}
-                  state={{ expandedSegment }}
-                  onClick={() => {
-                    closeDropdown()
-                    setModal('create')
-                  }}
-                >
-                  <div className="flex items-center gap-x-2">
-                    <Square2StackIcon className="w-4 h-4 block" />
-                    <span className="whitespace-nowrap">
-                      Save as a new segment
-                    </span>
-                  </div>
-                </AppNavigationLink>
-                <AppNavigationLink
-                  className={linkClassName}
-                  search={(s) => s}
-                  state={{ expandedSegment }}
-                  onClick={() => {
-                    closeDropdown()
-                    setModal('delete')
-                  }}
-                >
-                  <div className="flex items-center gap-x-2">
-                    <TrashIcon className="w-4 h-4 block" />
-                    <span className="whitespace-nowrap">Delete segment</span>
-                  </div>
-                </AppNavigationLink>
-                <AppNavigationLink
-                  className={linkClassName}
-                  search={(s) => ({
-                    ...s,
-                    filters: [],
-                    labels: {}
-                  })}
-                  state={{ expandedSegment: null }}
-                  onClick={closeDropdown}
-                >
-                  <div className="flex items-center gap-x-2">
-                    <XMarkIcon className="w-4 h-4 block" />
-                    <span className="whitespace-nowrap">
-                      Close without saving
-                    </span>
-                  </div>
-                </AppNavigationLink>
-              </Popover.Panel>
-            </Transition>
-          </>
-        )}
-      </Popover>
+            }
+            className={linkClassName}
+          >
+            <DashboardIcon icon={Copy01Icon} className="size-4" />
+            <span className="whitespace-nowrap">Save as a new segment</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            render={
+              <AppNavigationLink
+                search={(s) => s}
+                state={{ expandedSegment }}
+                onClick={() => setModal('delete')}
+              />
+            }
+            className={linkClassName}
+          >
+            <DashboardIcon icon={Delete02Icon} className="size-4" />
+            <span className="whitespace-nowrap">Delete segment</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            render={
+              <AppNavigationLink
+                search={(s) => ({
+                  ...s,
+                  filters: [],
+                  labels: {}
+                })}
+                state={{ expandedSegment: null }}
+              />
+            }
+            className={linkClassName}
+          >
+            <DashboardIcon icon={Cancel01Icon} className="size-4" />
+            <span className="whitespace-nowrap">Close without saving</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   )
 }

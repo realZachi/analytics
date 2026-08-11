@@ -56,7 +56,7 @@ function Countries({ query, site, onClick, afterFetchData }) {
         search: (search) => search
       }}
       renderIcon={renderIcon}
-      color="bg-orange-50 group-hover/row:bg-orange-100"
+      color="bg-primary/10 group-hover/row:bg-primary/20"
     />
   )
 }
@@ -97,7 +97,7 @@ function Regions({ query, site, onClick, afterFetchData }) {
       metrics={chooseMetrics()}
       detailsLinkProps={{ path: regionsRoute.path, search: (search) => search }}
       renderIcon={renderIcon}
-      color="bg-orange-50 group-hover/row:bg-orange-100"
+      color="bg-primary/10 group-hover/row:bg-primary/20"
     />
   )
 }
@@ -137,7 +137,7 @@ function Cities({ query, site, afterFetchData }) {
       metrics={chooseMetrics()}
       detailsLinkProps={{ path: citiesRoute.path, search: (search) => search }}
       renderIcon={renderIcon}
-      color="bg-orange-50 group-hover/row:bg-orange-100"
+      color="bg-primary/10 group-hover/row:bg-primary/20"
     />
   )
 }
@@ -256,7 +256,7 @@ class Locations extends React.Component {
       <div className="overflow-x-hidden">
         <div className="w-full flex justify-between">
           <div className="flex gap-x-1">
-            <h3 className="font-bold dark:text-gray-100">
+            <h3 className="font-bold text-foreground">
               {labelFor[this.state.mode] || 'Locations'}
             </h3>
             <ImportedQueryUnsupportedWarning

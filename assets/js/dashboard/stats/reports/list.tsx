@@ -15,6 +15,9 @@ import { useQueryContext } from '../../query-context'
 import { Metric } from './metrics'
 import { DrilldownLink, FilterInfo } from '../../components/drilldown-link'
 import { BreakdownResultMeta } from '../../query'
+import { LinkSquare01Icon } from '@hugeicons/core-free-icons'
+import { DashboardIcon } from '../../components/dashboard-icon'
+import { Skeleton } from '../../components/ui/skeleton'
 
 const MAX_ITEMS = 9
 export const MIN_HEIGHT = 380
@@ -40,21 +43,17 @@ function ExternalLink<T>({
       : 'invisible md:group-hover/row:visible'
 
     return (
-      <a target="_blank" rel="noreferrer" href={dest} className={className}>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          className="inline size-3.5 mb-0.5 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
-        >
-          <path
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="M9 5H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4M12 12l9-9-.303.303M14 3h7v7"
-          />
-        </svg>
+      <a
+        target="_blank"
+        rel="noreferrer"
+        href={dest}
+        className={className}
+        aria-label="Open external link"
+      >
+        <DashboardIcon
+          icon={LinkSquare01Icon}
+          className="mb-0.5 inline size-3.5 text-muted-foreground hover:text-foreground"
+        />
       </a>
     )
   }
@@ -273,7 +272,7 @@ export default function ListReport<
       })
 
     return (
-      <div className="pt-3 w-full text-xs font-semibold text-gray-500 flex items-center dark:text-gray-400">
+      <div className="flex w-full items-center pt-3 text-xs font-semibold text-muted-foreground">
         <span className="grow truncate">{keyLabel}</span>
         {metricLabels}
       </div>
@@ -294,7 +293,7 @@ export default function ListReport<
     return (
       <div key={listItem.name} style={{ minHeight: ROW_HEIGHT }}>
         <div
-          className="group/row flex w-full items-center hover:bg-gray-100/60 dark:hover:bg-gray-850 rounded-sm md:cursor-default cursor-pointer"
+          className="group/row flex w-full cursor-pointer items-center rounded-md hover:bg-muted/70 md:cursor-default"
           style={{ marginTop: ROW_GAP_HEIGHT }}
           onClick={handleRowClick}
         >
@@ -306,7 +305,8 @@ export default function ListReport<
   }
 
   function renderBarFor(listItem: TListItem) {
-    const lightBackground = color || 'bg-green-50 group-hover/row:bg-green-100'
+    const lightBackground =
+      color || 'bg-primary/10 group-hover/row:bg-primary/20'
     const metricToPlot = metrics.find((metric) => metric.meta.plot)?.key
 
     return (
@@ -315,10 +315,10 @@ export default function ListReport<
           maxWidthDeduction={undefined}
           count={listItem[metricToPlot]}
           all={state.list}
-          bg={`${lightBackground} dark:bg-gray-500/15 dark:group-hover/row:bg-gray-500/30`}
+          bg={lightBackground}
           plot={metricToPlot}
         >
-          <div className="flex justify-start items-center gap-x-1.5 px-2 py-1.5 text-sm dark:text-gray-300 relative z-9 break-all w-full">
+          <div className="relative z-9 flex w-full items-center justify-start gap-x-1.5 break-all px-2 py-1.5 text-sm text-foreground">
             <DrilldownLink
               filterInfo={getFilterInfo(listItem)}
               onClick={onClick}
@@ -366,7 +366,7 @@ export default function ListReport<
               style={{ width: colMinWidth, minWidth: colMinWidth }}
             >
               <span
-                className={`font-medium text-sm text-right ${isShowOnHover ? 'text-gray-500 group-hover/row:text-gray-800 dark:group-hover/row:text-gray-200' : 'text-gray-800 dark:text-gray-200'}`}
+                className={`text-right text-sm font-medium ${isShowOnHover ? 'text-muted-foreground group-hover/row:text-foreground' : 'text-foreground'}`}
               >
                 {metric.renderValue(listItem, state.meta, {
                   detailedView: false,
@@ -386,8 +386,10 @@ export default function ListReport<
         className="w-full flex flex-col justify-center"
         style={{ minHeight: `${MIN_HEIGHT}px` }}
       >
-        <div className="mx-auto loading">
-          <div></div>
+        <div className="w-full space-y-2 px-2">
+          {Array.from({ length: MAX_ITEMS }, (_, index) => (
+            <Skeleton key={index} className="h-7 w-full" />
+          ))}
         </div>
       </div>
     )
@@ -399,7 +401,7 @@ export default function ListReport<
         className="w-full h-full flex flex-col justify-center"
         style={{ minHeight: `${MIN_HEIGHT}px` }}
       >
-        <div className="mx-auto font-medium text-gray-500 dark:text-gray-400">
+        <div className="mx-auto font-medium text-muted-foreground">
           No data yet
         </div>
       </div>

@@ -104,7 +104,7 @@ defmodule PlausibleWeb.Live.Dashboard.Pages do
     assigns = assign(assigns, :external_link_fn, &external_link/1)
 
     ~H"""
-    <div>
+    <div class="text-card-foreground">
       <Tile.tile
         id="breakdown-tile-pages"
         class="group/report"

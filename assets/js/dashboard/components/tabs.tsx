@@ -1,11 +1,11 @@
-import { Popover, Transition } from '@headlessui/react'
 import classNames from 'classnames'
-import React, { ReactNode, useRef } from 'react'
-import { ChevronDownIcon } from '@heroicons/react/20/solid'
-import { popover, BlurMenuButtonOnEscape } from './popover'
+import React, { ReactNode, useState } from 'react'
 import { useSearchableItems } from '../hooks/use-searchable-items'
 import { SearchInput } from './search-input'
-import { EllipsisHorizontalIcon } from '@heroicons/react/24/solid'
+import { ArrowDown01Icon, MoreHorizontalIcon } from '@hugeicons/core-free-icons'
+import { DashboardIcon } from './dashboard-icon'
+import { Button } from './ui/button'
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 
 export const TabWrapper = ({
   className,
@@ -16,7 +16,7 @@ export const TabWrapper = ({
 }) => (
   <div
     className={classNames(
-      'flex text-xs font-medium text-gray-500 dark:text-gray-400 space-x-2 items-baseline',
+      'flex items-baseline gap-1 text-xs font-medium text-muted-foreground',
       className
     )}
   >
@@ -32,11 +32,9 @@ const TabButtonText = ({
   active: boolean
 }) => (
   <span
-    className={classNames('truncate text-left transition-colors duration-150', {
-      'hover:text-indigo-700 dark:hover:text-indigo-400 cursor-pointer':
-        !active,
-      'text-indigo-600 dark:text-indigo-500 font-bold underline decoration-2 decoration-indigo-600 dark:decoration-indigo-500':
-        active
+    className={classNames('truncate text-left transition-colors', {
+      'cursor-pointer hover:text-foreground': !active,
+      'font-medium text-foreground': active
     })}
   >
     {children}
@@ -54,9 +52,18 @@ export const TabButton = ({
   onClick: () => void
   active: boolean
 }) => (
-  <button className={classNames('rounded-sm', className)} onClick={onClick}>
+  <Button
+    variant="ghost"
+    size="xs"
+    className={classNames(
+      'h-7 px-2 data-[active=true]:bg-muted data-[active=true]:text-foreground',
+      className
+    )}
+    data-active={active}
+    onClick={onClick}
+  >
     <TabButtonText active={active}>{children}</TabButtonText>
-  </button>
+  </Button>
 )
 
 export const DropdownTabButton = ({
@@ -71,42 +78,36 @@ export const DropdownTabButton = ({
   active: boolean
   children: ReactNode
 } & Omit<ItemsProps, 'closeDropdown'>) => {
-  const dropdownButtonRef = useRef<HTMLButtonElement>(null)
+  const [open, setOpen] = useState(false)
 
   return (
-    <Popover className={className}>
-      {({ close: closeDropdown }) => (
-        <>
-          <BlurMenuButtonOnEscape targetRef={dropdownButtonRef} />
-          <Popover.Button
-            className="inline-flex justify-between rounded-xs"
-            ref={dropdownButtonRef}
-          >
-            <TabButtonText active={active}>{children}</TabButtonText>
-
-            <div
-              className="flex self-stretch -mr-1 ml-1 items-center"
-              aria-hidden="true"
-            >
-              <ChevronDownIcon className="h-4 w-4" />
-            </div>
-          </Popover.Button>
-
-          <Transition
-            as="div"
-            {...popover.transition.props}
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger
+        render={
+          <Button
+            variant="ghost"
+            size="xs"
             className={classNames(
-              popover.transition.classNames.fullwidth,
-              'mt-2',
-              transitionClassName
+              'h-7 px-2 data-[active=true]:bg-muted data-[active=true]:text-foreground',
+              className
             )}
-          >
-            <Popover.Panel className={popover.panel.classNames.roundedSheet}>
-              <Items closeDropdown={closeDropdown} {...optionsProps} />
-            </Popover.Panel>
-          </Transition>
-        </>
-      )}
+            data-active={active}
+          />
+        }
+      >
+        <TabButtonText active={active}>{children}</TabButtonText>
+        <DashboardIcon icon={ArrowDown01Icon} className="size-3.5" />
+      </PopoverTrigger>
+
+      <PopoverContent
+        align="end"
+        className={classNames(
+          'w-(--anchor-width) min-w-64 gap-0.5 p-1',
+          transitionClassName
+        )}
+      >
+        <Items closeDropdown={() => setOpen(false)} {...optionsProps} />
+      </PopoverContent>
     </Popover>
   )
 }
@@ -141,19 +142,15 @@ const Items = ({
       option.label.toLowerCase().includes(trimmedSearchString.toLowerCase())
   })
 
-  const itemClassName = classNames(
-    'w-full text-left',
-    popover.items.classNames.navigationLink,
-    popover.items.classNames.selectedOption,
-    popover.items.classNames.hoverLink
-  )
+  const itemClassName =
+    'w-full justify-start text-left font-normal data-[selected=true]:bg-muted data-[selected=true]:font-medium'
 
   return (
     <>
       {searchable && showSearch && (
         <div className="flex items-center py-2 px-4">
           {collectionTitle && (
-            <div className="text-sm font-bold uppercase text-indigo-500 dark:text-indigo-400 mr-4">
+            <div className="mr-4 text-sm font-medium text-foreground">
               {collectionTitle}
             </div>
           )}
@@ -165,10 +162,12 @@ const Items = ({
           />
         </div>
       )}
-      <div className={'max-h-[210px] overflow-y-scroll'}>
+      <div className="no-scrollbar max-h-[210px] overflow-y-auto overscroll-contain">
         {showableData.map(({ selected, label, onClick }, index) => {
           return (
-            <button
+            <Button
+              variant="ghost"
+              size="default"
               key={index}
               onClick={() => {
                 onClick()
@@ -178,31 +177,33 @@ const Items = ({
               className={itemClassName}
             >
               {label}
-            </button>
+            </Button>
           )
         })}
         {countOfMoreToShow > 0 && (
-          <button
+          <Button
+            variant="ghost"
             onClick={handleShowAll}
             className={classNames(
               itemClassName,
-              'w-full text-left font-bold hover:text-indigo-700 dark:hover:text-indigo-500'
+              'w-full justify-start text-left font-medium'
             )}
           >
             {`Show ${countOfMoreToShow} more`}
-            <EllipsisHorizontalIcon className="block w-5 h-5" />
-          </button>
+            <DashboardIcon icon={MoreHorizontalIcon} className="size-4" />
+          </Button>
         )}
         {searching && !filteredData.length && (
-          <button
+          <Button
+            variant="ghost"
             className={classNames(
               itemClassName,
-              'w-full text-left font-bold hover:text-indigo-700 dark:hover:text-indigo-500'
+              'w-full justify-start text-left font-medium'
             )}
             onClick={handleClearSearch}
           >
             No items found. Clear search to show all.
-          </button>
+          </Button>
         )}
       </div>
     </>

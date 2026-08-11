@@ -5,14 +5,16 @@ import FunnelTooltip from './funnel-tooltip'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
 import { numberShortFormatter } from '../util/number-formatter'
 import Bar from '../stats/bar'
-
-import RocketIcon from '../stats/modals/rocket-icon'
-
 import * as api from '../api'
 import LazyLoader from '../components/lazy-loader'
 import { useQueryContext } from '../query-context'
 import { useSiteContext } from '../site-context'
 import { UIMode, useTheme } from '../theme-context'
+import { Rocket01Icon } from '@hugeicons/core-free-icons'
+import { DashboardIcon } from '../components/dashboard-icon'
+import { Alert, AlertDescription, AlertTitle } from '../components/ui/alert'
+import { Skeleton } from '../components/ui/skeleton'
+import { Tooltip } from '../util/tooltip'
 
 const getPalette = (theme) => {
   if (theme.mode === UIMode.dark) {
@@ -23,9 +25,9 @@ const getPalette = (theme) => {
       dropoffBackground: 'rgb(63, 63, 70)',
       dropoffStripes: 'rgb(9, 9, 11)',
       stepNameLegendColor: 'rgb(228, 228, 231)',
-      visitorsLegendClass: 'bg-indigo-500',
-      dropoffLegendClass: 'bg-gray-600',
-      smallBarClass: 'bg-indigo-500'
+      visitorsLegendClass: 'bg-chart-2',
+      dropoffLegendClass: 'bg-muted-foreground',
+      smallBarClass: 'bg-chart-2'
     }
   } else {
     return {
@@ -35,9 +37,9 @@ const getPalette = (theme) => {
       dropoffBackground: 'rgb(224, 231, 255)',
       dropoffStripes: 'rgb(255, 255, 255)',
       stepNameLegendColor: 'rgb(24, 24, 27)',
-      visitorsLegendClass: 'bg-indigo-500',
-      dropoffLegendClass: 'bg-indigo-100',
-      smallBarClass: 'bg-indigo-300'
+      visitorsLegendClass: 'bg-chart-2',
+      dropoffLegendClass: 'bg-primary/20',
+      smallBarClass: 'bg-chart-2/60'
     }
   }
 }
@@ -294,7 +296,7 @@ export default function Funnel({ funnelName, tabs }) {
   const header = () => {
     return (
       <div className="flex justify-between w-full">
-        <h4 className="mt-2 text-sm dark:text-gray-100">{funnelName}</h4>
+        <h4 className="mt-2 text-sm text-foreground">{funnelName}</h4>
         {tabs}
       </div>
     )
@@ -306,7 +308,7 @@ export default function Funnel({ funnelName, tabs }) {
       return (
         <>
           {header()}
-          <div className="font-medium text-center text-gray-500 mt-44 dark:text-gray-400">
+          <div className="mt-44 text-center font-medium text-muted-foreground">
             {error.message}
           </div>
         </>
@@ -315,16 +317,20 @@ export default function Funnel({ funnelName, tabs }) {
       return (
         <>
           {header()}
-          <div className="text-center text-gray-900 dark:text-gray-100 mt-16">
-            <RocketIcon />
-            <div className="text-lg font-bold">Oops! Something went wrong</div>
-            <div className="text-lg">
-              {error.message ? error.message : 'Failed to render funnel'}
-            </div>
-            <div className="text-xs mt-8">
-              Please try refreshing your browser or selecting the funnel again.
-            </div>
-          </div>
+          <Alert
+            variant="destructive"
+            className="mx-auto mt-16 max-w-md text-left"
+          >
+            <DashboardIcon icon={Rocket01Icon} className="size-5" />
+            <AlertTitle>Oops! Something went wrong</AlertTitle>
+            <AlertDescription>
+              <p>{error.message ? error.message : 'Failed to render funnel'}</p>
+              <p className="mt-2 text-xs">
+                Please try refreshing your browser or selecting the funnel
+                again.
+              </p>
+            </AlertDescription>
+          </Alert>
         </>
       )
     }
@@ -333,8 +339,8 @@ export default function Funnel({ funnelName, tabs }) {
   const renderInner = (theme) => {
     if (loading) {
       return (
-        <div className="mx-auto loading pt-44">
-          <div></div>
+        <div className="flex justify-center pt-44">
+          <Skeleton className="size-16 rounded-full" />
         </div>
       )
     } else if (error) {
@@ -346,7 +352,7 @@ export default function Funnel({ funnelName, tabs }) {
       return (
         <div className="mb-8">
           {header()}
-          <p className="mt-1 text-gray-500 text-sm">
+          <p className="mt-1 text-sm text-muted-foreground">
             {funnel.steps.length}-step funnel • {conversionRate}% conversion
             rate
           </p>
@@ -370,17 +376,23 @@ export default function Funnel({ funnelName, tabs }) {
             maxWidthDeduction={'5rem'}
             plot={'visitors'}
           >
-            <span className="flex px-2 py-1.5 group dark:text-gray-100 relative z-9 break-all">
+            <span className="relative z-9 flex break-all px-2 py-1.5 text-foreground">
               {step.label}
             </span>
           </Bar>
 
-          <span
-            className="font-medium dark:text-gray-200 w-20 text-right"
-            tooltip={step.visitors.toLocaleString()}
+          <Tooltip
+            info={
+              <span className="font-normal">
+                {step.visitors.toLocaleString()}
+              </span>
+            }
+            className="w-20 text-right"
           >
-            {numberShortFormatter(step.visitors)}
-          </span>
+            <span className="font-medium text-foreground">
+              {numberShortFormatter(step.visitors)}
+            </span>
+          </Tooltip>
         </div>
       </>
     )
@@ -389,7 +401,7 @@ export default function Funnel({ funnelName, tabs }) {
   const renderBars = (funnel, theme) => {
     return (
       <>
-        <div className="flex items-center justify-between mt-3 mb-2 text-xs font-bold tracking-wide text-gray-500 dark:text-gray-400">
+        <div className="mt-3 mb-2 flex items-center justify-between text-xs font-bold tracking-wide text-muted-foreground">
           <span>&nbsp;</span>
           <span className="text-right">
             <span className="inline-block w-20">Visitors</span>

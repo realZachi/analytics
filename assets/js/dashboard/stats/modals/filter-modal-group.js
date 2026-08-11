@@ -6,6 +6,9 @@ import {
   getPropertyKeyFromFilterKey
 } from '../../util/filters'
 import FilterModalPropsRow from './filter-modal-props-row'
+import { Add01Icon } from '@hugeicons/core-free-icons'
+import { Button } from '../../components/ui/button'
+import { DashboardIcon } from '../../components/dashboard-icon'
 
 export default function FilterModalGroup({
   filterGroup,
@@ -39,7 +42,7 @@ export default function FilterModalGroup({
     <>
       <div className="mt-6">
         {showTitle && (
-          <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <div className="text-sm font-medium text-foreground">
             {formattedFilters[filterGroup]}
           </div>
         )}
@@ -70,13 +73,15 @@ export default function FilterModalGroup({
       </div>
       {showAddRow && (
         <div className="mt-2">
-          {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-          <a
-            className="underline text-indigo-500 text-sm cursor-pointer"
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
             onClick={() => onAddRow(filterGroup)}
           >
-            + Add another
-          </a>
+            <DashboardIcon icon={Add01Icon} className="size-3.5" />
+            Add another
+          </Button>
         </div>
       )}
     </>

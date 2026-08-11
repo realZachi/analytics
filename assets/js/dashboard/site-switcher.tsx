@@ -1,13 +1,17 @@
 /**
  * @prettier
  */
-import React, { useRef } from 'react'
-import { Popover, Transition } from '@headlessui/react'
-import { ChevronDownIcon } from '@heroicons/react/20/solid'
-import { Cog8ToothIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
+import React, { useRef, useState } from 'react'
+import {
+  ArrowDown01Icon,
+  ArrowLeft01Icon,
+  Globe02Icon,
+  Loading03Icon,
+  Settings01Icon
+} from '@hugeicons/core-free-icons'
 import classNames from 'classnames'
 import { isModifierPressed, isTyping, Keybind, KeybindHint } from './keybinding'
-import { popover, BlurMenuButtonOnEscape } from './components/popover'
+import { BlurMenuButtonOnEscape } from './nav-menu/blur-menu-button-on-escape'
 import { useQuery } from '@tanstack/react-query'
 import { Role, useUserContext } from './user-context'
 import { PlausibleSite, useSiteContext } from './site-context'
@@ -17,6 +21,13 @@ import { rootRoute } from './router'
 import { get } from './api'
 import { ErrorPanel } from './components/error-panel'
 import { useRoutelessModalsContext } from './navigation/routeless-modals-context'
+import { DashboardIcon } from './components/dashboard-icon'
+import { buttonVariants } from './components/ui/button'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from './components/ui/popover'
 
 const Favicon = ({
   domain,
@@ -40,43 +51,19 @@ const Favicon = ({
 )
 
 const GlobeIcon = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    className={className}
-  >
-    <path
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.5"
-      d="M22 12H2M12 22c5.714-5.442 5.714-14.558 0-20M12 22C6.286 16.558 6.286 7.442 12 2"
-    />
-    <path
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.5"
-      d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10Z"
-    />
-  </svg>
+  <DashboardIcon icon={Globe02Icon} className={className} />
 )
 
 const menuItemClassName = classNames(
-  popover.items.classNames.navigationLink,
-  popover.items.classNames.selectedOption,
-  popover.items.classNames.hoverLink
+  'flex w-full items-center rounded-md px-3 py-2 text-sm font-medium text-foreground',
+  'data-[selected=true]:bg-accent data-[selected=true]:font-semibold data-[selected=true]:text-accent-foreground'
 )
 
 const buttonLinkClassName = classNames(
-  'flex-1 flex items-center justify-center',
+  'flex-1',
   'my-1 mx-1',
-  'border border-gray-300 dark:border-gray-700',
-  'px-3 py-2 text-sm font-medium rounded-md',
-  'bg-white text-gray-700 dark:text-gray-300 dark:bg-gray-700',
-  'transition-all duration-200',
-  'hover:text-gray-900 hover:border-gray-400/70 dark:hover:bg-gray-600 dark:hover:border-gray-600 dark:hover:text-white'
+  'border-border bg-card text-foreground',
+  'hover:bg-accent hover:text-accent-foreground'
 )
 
 const getSwitchToSiteURL = (
@@ -95,7 +82,8 @@ export const SiteSwitcher = () => {
   const { modal } = useRoutelessModalsContext()
   const user = useUserContext()
   const currentSite = useSiteContext()
-  const buttonRef = useRef<HTMLButtonElement>(null)
+  const buttonRef = useRef<HTMLButtonElement | null>(null)
+  const [open, setOpen] = useState(false)
   const sitesQuery = useQuery({
     enabled: user.loggedIn,
     queryKey: ['sites'],
@@ -118,163 +106,168 @@ export const SiteSwitcher = () => {
   const canSeeViewAllSites: boolean = user.loggedIn
 
   return (
-    <Popover className="md:relative">
-      {({ close: closePopover }) => (
-        <>
-          {!!dashboardRouteMatch &&
-            !modal &&
-            sitesQuery.data?.data.slice(0, 8).map(({ domain }, index) => (
-              <Keybind
-                key={domain}
-                keyboardKey={`${index + 1}`}
-                type="keydown"
-                handler={() => {
-                  const url = getSwitchToSiteURL(currentSite, { domain })
-                  if (!url) {
-                    closePopover()
-                  } else {
-                    closePopover()
-                    window.location.assign(url)
-                  }
-                }}
-                shouldIgnoreWhen={[isModifierPressed, isTyping]}
-                targetRef="document"
-              />
-            ))}
+    <div className="relative">
+      {!!dashboardRouteMatch &&
+        !modal &&
+        sitesQuery.data?.data.slice(0, 8).map(({ domain }, index) => (
+          <Keybind
+            key={domain}
+            keyboardKey={`${index + 1}`}
+            type="keydown"
+            handler={() => {
+              const url = getSwitchToSiteURL(currentSite, { domain })
+              setOpen(false)
+              if (url) {
+                window.location.assign(url)
+              }
+            }}
+            shouldIgnoreWhen={[isModifierPressed, isTyping]}
+            targetRef="document"
+          />
+        ))}
 
-          {!!dashboardRouteMatch &&
-            !modal &&
-            user.team?.hasConsolidatedView &&
-            user.team.identifier && (
-              <Keybind
-                key={user.team.identifier}
-                keyboardKey="0"
-                type="keydown"
-                handler={() => {
-                  const url = getSwitchToSiteURL(currentSite, {
-                    domain: user.team.identifier!
-                  })
-                  if (!url) {
-                    closePopover()
-                  } else {
-                    closePopover()
-                    window.location.assign(url)
-                  }
-                }}
-                shouldIgnoreWhen={[isModifierPressed, isTyping]}
-                targetRef="document"
-              />
-            )}
+      {!!dashboardRouteMatch &&
+        !modal &&
+        user.team?.hasConsolidatedView &&
+        user.team.identifier && (
+          <Keybind
+            key={user.team.identifier}
+            keyboardKey="0"
+            type="keydown"
+            handler={() => {
+              const url = getSwitchToSiteURL(currentSite, {
+                domain: user.team.identifier!
+              })
+              setOpen(false)
+              if (url) {
+                window.location.assign(url)
+              }
+            }}
+            shouldIgnoreWhen={[isModifierPressed, isTyping]}
+            targetRef="document"
+          />
+        )}
 
-          <BlurMenuButtonOnEscape targetRef={buttonRef} />
-          <Popover.Button
-            ref={buttonRef}
-            className={classNames(
-              'flex items-center rounded h-9 leading-5 font-bold dark:text-gray-100',
-              'hover:bg-gray-100 dark:hover:bg-gray-800'
-            )}
-            title={currentSite.domain}
+      <Popover open={open} onOpenChange={setOpen}>
+        <BlurMenuButtonOnEscape targetRef={buttonRef} />
+        <PopoverTrigger
+          onFocus={(event) => {
+            buttonRef.current = event.currentTarget
+          }}
+          title={currentSite.domain}
+          className={buttonVariants({
+            variant: 'ghost',
+            size: 'lg',
+            className: 'h-9 gap-0 rounded-lg px-1 font-bold text-foreground'
+          })}
+        >
+          {currentSite.isConsolidatedView ? (
+            <GlobeIcon className="mx-1 size-4 text-primary" />
+          ) : (
+            <Favicon
+              domain={currentSite.domain}
+              className="mx-1 block size-4"
+            />
+          )}
+          <span className="hidden truncate sm:mr-1 sm:block lg:mr-0">
+            {currentSite.isConsolidatedView ? 'All sites' : currentSite.domain}
+          </span>
+          <DashboardIcon
+            icon={ArrowDown01Icon}
+            className="ml-2 hidden size-5 lg:block"
+          />
+        </PopoverTrigger>
+        {open && (
+          <PopoverContent
+            align="start"
+            className="w-[min(20rem,calc(100vw-1rem))] p-1"
+            data-testid="sitemenu"
           >
-            {currentSite.isConsolidatedView ? (
-              <GlobeIcon className="size-4 block mx-1 h-4 w-4 text-indigo-600 dark:text-white" />
-            ) : (
-              <Favicon
-                domain={currentSite.domain}
-                className="block h-4 w-4 mx-1"
-              />
-            )}
-            <span className={'truncate hidden sm:block sm:mr-1 lg:mr-0'}>
-              {currentSite.isConsolidatedView
-                ? 'All sites'
-                : currentSite.domain}
-            </span>
-            <ChevronDownIcon className="hidden lg:block h-5 w-5 ml-2 dark:text-gray-100" />
-          </Popover.Button>
-          <Transition
-            as="div"
-            {...popover.transition.props}
-            className={classNames(
-              popover.transition.classNames.fullwidth,
-              'mt-2 md:w-80 md:right-auto md:origin-top-left'
-            )}
-          >
-            <Popover.Panel
-              data-testid="sitemenu"
-              className={classNames(popover.panel.classNames.roundedSheet)}
-            >
-              <div className="flex">
-                {canSeeViewAllSites && (
-                  <a className={buttonLinkClassName} href={`/sites`}>
-                    <ArrowLeftIcon className="size-4 mr-1.5" />
-                    Back to sites
-                  </a>
-                )}
-                {canSeeSiteSettings && (
-                  <a
-                    className={buttonLinkClassName}
-                    href={`/${encodeURIComponent(currentSite.domain)}/settings/general`}
-                  >
-                    <Cog8ToothIcon className="size-4 mr-1.5" />
-                    Site settings
-                  </a>
-                )}
-              </div>
-              {(canSeeSiteSettings || canSeeViewAllSites) && <MenuSeparator />}
-              {sitesQuery.isLoading && (
-                <div className="px-3 py-2">
-                  <div className="loading sm">
-                    <div />
-                  </div>
-                </div>
-              )}
-              {sitesQuery.isError && (
-                <div className="px-3 py-2">
-                  <ErrorPanel
-                    errorMessage={'Error loading sites'}
-                    onClose={sitesQuery.refetch}
-                  />
-                </div>
-              )}
-              {user.team.hasConsolidatedView && user.team.identifier && (
+            <div className="flex">
+              {canSeeViewAllSites && (
                 <a
-                  data-selected={currentSite.isConsolidatedView}
-                  className={menuItemClassName}
-                  href={
-                    getSwitchToSiteURL(currentSite, {
-                      domain: user.team.identifier
-                    }) ?? '#'
-                  }
-                  onClick={() => closePopover()}
+                  href="/sites"
+                  className={buttonVariants({
+                    variant: 'outline',
+                    size: 'sm',
+                    className: buttonLinkClassName
+                  })}
                 >
-                  <GlobeIcon className="size-4 block mr-2 text-indigo-600 dark:text-white" />
-                  <span className="truncate mr-auto">All sites</span>
-                  <KeybindHint>0</KeybindHint>
+                  <DashboardIcon icon={ArrowLeft01Icon} className="size-4" />
+                  Back to sites
                 </a>
               )}
-              {!!sitesInDropdown &&
-                sitesInDropdown.map(({ domain }, index) => (
-                  <a
-                    data-selected={currentSite.domain === domain}
-                    key={domain}
-                    className={menuItemClassName}
-                    href={getSwitchToSiteURL(currentSite, { domain }) ?? '#'}
-                    onClick={
-                      currentSite.domain === domain
-                        ? () => closePopover()
-                        : () => {}
-                    }
-                  >
-                    <Favicon domain={domain} className="h-4 w-4 block mr-2" />
-                    <span className="truncate mr-auto">{domain}</span>
-                    {sitesInDropdown.length > 1 && (
-                      <KeybindHint>{index + 1}</KeybindHint>
-                    )}
-                  </a>
-                ))}
-            </Popover.Panel>
-          </Transition>
-        </>
-      )}
-    </Popover>
+              {canSeeSiteSettings && (
+                <a
+                  href={`/${encodeURIComponent(currentSite.domain)}/settings/general`}
+                  className={buttonVariants({
+                    variant: 'outline',
+                    size: 'sm',
+                    className: buttonLinkClassName
+                  })}
+                >
+                  <DashboardIcon icon={Settings01Icon} className="size-4" />
+                  Site settings
+                </a>
+              )}
+            </div>
+            {(canSeeSiteSettings || canSeeViewAllSites) && <MenuSeparator />}
+            {sitesQuery.isLoading && (
+              <div className="flex px-3 py-2" aria-live="polite">
+                <DashboardIcon
+                  icon={Loading03Icon}
+                  className="size-4 animate-spin text-muted-foreground"
+                />
+                <span className="sr-only">Loading sites</span>
+              </div>
+            )}
+            {sitesQuery.isError && (
+              <div className="px-3 py-2">
+                <ErrorPanel
+                  errorMessage={'Error loading sites'}
+                  onClose={sitesQuery.refetch}
+                />
+              </div>
+            )}
+            {user.team.hasConsolidatedView && user.team.identifier && (
+              <a
+                href={
+                  getSwitchToSiteURL(currentSite, {
+                    domain: user.team.identifier
+                  }) ?? '#'
+                }
+                data-selected={currentSite.isConsolidatedView}
+                className={menuItemClassName}
+                onClick={() => setOpen(false)}
+              >
+                <GlobeIcon className="mr-2 size-4 text-primary" />
+                <span className="mr-auto truncate">All sites</span>
+                <KeybindHint>0</KeybindHint>
+              </a>
+            )}
+            {!!sitesInDropdown &&
+              sitesInDropdown.map(({ domain }, index) => (
+                <a
+                  href={getSwitchToSiteURL(currentSite, { domain }) ?? '#'}
+                  data-selected={currentSite.domain === domain}
+                  key={domain}
+                  className={menuItemClassName}
+                  onClick={
+                    currentSite.domain === domain
+                      ? () => setOpen(false)
+                      : undefined
+                  }
+                >
+                  <Favicon domain={domain} className="mr-2 block size-4" />
+                  <span className="mr-auto truncate">{domain}</span>
+                  {sitesInDropdown.length > 1 && (
+                    <KeybindHint>{index + 1}</KeybindHint>
+                  )}
+                </a>
+              ))}
+          </PopoverContent>
+        )}
+      </Popover>
+    </div>
   )
 }

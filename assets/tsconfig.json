@@ -1,9 +1,15 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["js/*"]
+    },
     "noEmit": true,
-    "jsx": "react",
+    "jsx": "react-jsx",
     "target": "es2017",
-    "module": "commonjs",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "types": ["jest", "node"],
     "allowJs": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,

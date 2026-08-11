@@ -76,7 +76,7 @@ defmodule PlausibleWeb.Components.Dashboard.Base do
     ~H"""
     <div class="w-full h-full relative" style={@style}>
       <div
-        class={"absolute top-0 left-0 h-full rounded-sm transition-colors duration-150 #{@background_class || ""}"}
+        class={"absolute top-0 left-0 h-full rounded-md transition-colors duration-150 #{@background_class || ""}"}
         style={"width: #{@width_percent}%"}
       >
       </div>

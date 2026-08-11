@@ -50,7 +50,7 @@ export default function TopStats({
             <ChangeArrow
               metric={stat.graph_metric}
               change={stat.change}
-              className="pl-4 text-xs text-gray-100"
+              className="pl-4 text-xs text-background"
             />
           </div>
         )}
@@ -106,114 +106,119 @@ export default function TopStats({
     }
   }
 
-  function blinkingDot() {
-    return (
-      <div
-        key="dot"
-        className="block pulsating-circle"
-        style={{ left: '125px', top: '52px' }}
-      ></div>
-    )
-  }
-
   function getStoredMetric() {
     return storage.getItem(`metric__${site.domain}`)
   }
 
-  function renderStatName(stat) {
-    const isSelected = stat.graph_metric === getStoredMetric()
-
+  function renderStatName(stat, isSelected) {
     const [statDisplayName, statExtraName] = stat.name.split(/(\(.+\))/g)
 
     const statDisplayNameClass = classNames(
-      'text-xs font-bold tracking-wide text-gray-500 uppercase dark:text-gray-400 whitespace-nowrap flex w-fit border-b',
+      'flex max-w-full items-center truncate text-[11px] font-medium tracking-[0.08em] text-muted-foreground uppercase',
       {
-        'text-indigo-600 dark:text-indigo-500 border-indigo-600 dark:border-indigo-500':
-          isSelected,
-        'group-hover:text-indigo-700 dark:group-hover:text-indigo-500 border-transparent':
-          !isSelected
+        'text-primary': isSelected,
+        'group-hover:text-foreground': !isSelected
       }
     )
 
     return (
-      <div className={statDisplayNameClass}>
-        {statDisplayName}
+      <div className={statDisplayNameClass} title={stat.name}>
+        <span className="truncate">{statDisplayName}</span>
         {statExtraName && (
-          <span className="hidden sm:inline-block ml-1">{statExtraName}</span>
+          <span className="ml-1 hidden shrink-0 sm:inline-block">
+            {statExtraName}
+          </span>
         )}
         {warningText(stat.graph_metric) && (
-          <span className="inline-block ml-1">*</span>
+          <span className="ml-1 inline-block shrink-0">*</span>
+        )}
+        {stat.name === 'Current visitors' && (
+          <span className="relative ml-2 flex size-2 shrink-0">
+            <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary/60 motion-reduce:animate-none" />
+            <span className="relative inline-flex size-2 rounded-full bg-primary" />
+          </span>
         )}
       </div>
     )
   }
 
-  function renderStat(stat, index) {
-    const className = classNames(
-      'px-4 md:px-6 w-1/2 my-4 lg:w-auto group select-none',
+  function renderStat(stat) {
+    const isSelected = stat.graph_metric === getStoredMetric()
+    const graphable = canMetricBeGraphed(stat)
+    const statClassName = classNames(
+      'group relative flex min-h-24 w-full min-w-0 flex-col items-start justify-between gap-3 bg-card px-4 py-3.5 text-left select-none',
       {
-        'cursor-pointer': canMetricBeGraphed(stat),
-        'lg:border-l border-gray-300 dark:border-gray-700': index > 0,
-        'border-r lg:border-r-0': index % 2 === 0
+        'cursor-pointer transition-colors hover:bg-muted/50 focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50':
+          graphable,
+        'bg-primary/[0.04] after:absolute after:inset-x-4 after:bottom-0 after:h-0.5 after:rounded-full after:bg-primary':
+          isSelected
       }
+    )
+
+    const statContent = (
+      <>
+        {renderStatName(stat, isSelected)}
+        <div className="min-w-0">
+          <div className="flex min-w-0 items-baseline gap-2">
+            <p
+              className="truncate font-mono text-xl leading-none font-semibold tracking-tight text-foreground xl:text-2xl"
+              id={stat.graph_metric}
+            >
+              {topStatNumberShort(stat.graph_metric, stat.value)}
+            </p>
+            {!isComparison && stat.change != null ? (
+              <ChangeArrow
+                metric={stat.graph_metric}
+                change={stat.change}
+                className="shrink-0 text-xs font-medium text-muted-foreground"
+              />
+            ) : null}
+          </div>
+          {isComparison ? (
+            <p className="mt-1 truncate text-[11px] text-muted-foreground">
+              {formatDateRange(site, data.from, data.to)}
+            </p>
+          ) : null}
+        </div>
+
+        {isComparison ? (
+          <div className="min-w-0 border-t border-border/70 pt-2">
+            <p className="truncate font-mono text-lg leading-none font-medium text-muted-foreground">
+              {topStatNumberShort(stat.graph_metric, stat.comparison_value)}
+            </p>
+            <p className="mt-1 truncate text-[11px] text-muted-foreground">
+              {formatDateRange(site, data.comparing_from, data.comparing_to)}
+            </p>
+          </div>
+        ) : null}
+      </>
     )
 
     return (
       <Tooltip
         key={stat.name}
-        info={tooltip(stat, query)}
-        className={className}
-        onClick={() => {
-          maybeUpdateMetric(stat)
-        }}
+        info={tooltip(stat)}
+        className="h-full w-full min-w-0"
         boundary={tooltipBoundary}
       >
-        {renderStatName(stat)}
-        <div className="my-1 space-y-2">
-          <div>
-            <span className="flex items-center justify-between whitespace-nowrap">
-              <p
-                className="font-bold text-xl dark:text-gray-100"
-                id={stat.graph_metric}
-              >
-                {topStatNumberShort(stat.graph_metric, stat.value)}
-              </p>
-              {!isComparison && stat.change != null ? (
-                <ChangeArrow
-                  metric={stat.graph_metric}
-                  change={stat.change}
-                  className="pl-2 text-xs dark:text-gray-100"
-                />
-              ) : null}
-            </span>
-            {isComparison ? (
-              <p className="text-xs dark:text-gray-100">
-                {formatDateRange(site, data.from, data.to)}
-              </p>
-            ) : null}
-          </div>
-
-          {isComparison ? (
-            <div>
-              <p className="font-bold text-xl text-gray-500 dark:text-gray-400">
-                {topStatNumberShort(stat.graph_metric, stat.comparison_value)}
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {formatDateRange(site, data.comparing_from, data.comparing_to)}
-              </p>
-            </div>
-          ) : null}
-        </div>
+        {graphable ? (
+          <button
+            aria-pressed={isSelected}
+            className={statClassName}
+            onClick={() => maybeUpdateMetric(stat)}
+            type="button"
+          >
+            {statContent}
+          </button>
+        ) : (
+          <div className={statClassName}>{statContent}</div>
+        )}
       </Tooltip>
     )
   }
 
   const stats =
     data && data.top_stats.filter((stat) => stat.value !== null).map(renderStat)
-
-  if (stats && query.period === 'realtime') {
-    stats.push(blinkingDot())
-  }
 
   return stats || null
 }

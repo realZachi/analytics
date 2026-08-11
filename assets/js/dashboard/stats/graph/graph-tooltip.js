@@ -4,7 +4,6 @@ import dateFormatter from './date-formatter'
 import { METRIC_LABELS, hasMultipleYears } from './graph-util'
 import { MetricFormatterShort } from '../reports/metric-formatter'
 import { ChangeArrow } from '../reports/change-arrow'
-import { UIMode } from '../../theme-context'
 
 const renderBucketLabel = function (
   query,
@@ -100,7 +99,7 @@ const buildTooltipData = function (query, graphData, metric, tooltipModel) {
 
 let tooltipRoot
 
-export default function GraphTooltip(graphData, metric, query, theme) {
+export default function GraphTooltip(graphData, metric, query) {
   return (context) => {
     const tooltipModel = context.tooltip
     const offset = document
@@ -118,8 +117,8 @@ export default function GraphTooltip(graphData, metric, query, theme) {
       tooltipRoot = createRoot(tooltipEl)
     }
 
-    const bgClass = theme.mode === UIMode.dark ? 'bg-gray-950' : 'bg-gray-800'
-    tooltipEl.className = `absolute text-sm font-normal py-3 px-4 pointer-events-none rounded-md z-[100] min-w-[180px] ${bgClass}`
+    tooltipEl.className =
+      'pointer-events-none absolute z-[100] min-w-[200px] rounded-lg bg-popover px-3 py-2.5 text-sm font-normal text-popover-foreground shadow-md ring-1 ring-foreground/10'
 
     if (tooltipEl && offset && window.innerWidth < 768) {
       tooltipEl.style.top =
@@ -143,7 +142,7 @@ export default function GraphTooltip(graphData, metric, query, theme) {
       )
 
       tooltipRoot.render(
-        <aside className="text-gray-100 flex flex-col gap-1.5">
+        <aside className="flex flex-col gap-1.5 text-popover-foreground">
           <div className="flex justify-between items-center">
             <span className="font-semibold mr-4 text-xs uppercase">
               {METRIC_LABELS[metric]}
@@ -162,10 +161,7 @@ export default function GraphTooltip(graphData, metric, query, theme) {
             <div className="flex flex-col">
               <div className="flex flex-row justify-between items-center text-sm">
                 <span className="flex items-center mr-4">
-                  <div
-                    className="size-2 mr-2 rounded-full"
-                    style={{ backgroundColor: 'rgba(101,116,205)' }}
-                  ></div>
+                  <div className="mr-2 size-2 rounded-full bg-chart-2"></div>
                   <span>{tooltipData.label}</span>
                 </span>
                 <span className="font-bold">{tooltipData.formattedValue}</span>
@@ -174,7 +170,7 @@ export default function GraphTooltip(graphData, metric, query, theme) {
               {tooltipData.comparisonLabel ? (
                 <div className="flex flex-row justify-between items-center text-sm">
                   <span className="flex items-center mr-4">
-                    <div className="size-2 mr-2 rounded-full bg-gray-500"></div>
+                    <div className="mr-2 size-2 rounded-full bg-background/50"></div>
                     <span>{tooltipData.comparisonLabel}</span>
                   </span>
                   <span className="font-bold">
@@ -187,8 +183,8 @@ export default function GraphTooltip(graphData, metric, query, theme) {
 
           {['month', 'day'].includes(graphData.interval) && (
             <>
-              <hr className="border-gray-600 dark:border-gray-800 my-1" />
-              <span className="text-gray-300 dark:text-gray-400 text-xs">
+              <hr className="my-1 border-border" />
+              <span className="text-xs text-muted-foreground">
                 Click to view {graphData.interval}
               </span>
             </>

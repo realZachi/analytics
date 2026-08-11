@@ -3,12 +3,16 @@ import FadeIn from '../../fade-in'
 import Bar from '../bar'
 import MoreLink from '../more-link'
 import { numberShortFormatter } from '../../util/number-formatter'
-import RocketIcon from '../modals/rocket-icon'
 import * as api from '../../api'
 import LazyLoader from '../../components/lazy-loader'
 import { referrersGoogleRoute } from '../../router'
 import { useQueryContext } from '../../query-context'
 import { PlausibleSite, useSiteContext } from '../../site-context'
+import { Rocket01Icon } from '@hugeicons/core-free-icons'
+import { DashboardIcon } from '../../components/dashboard-icon'
+import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert'
+import { buttonVariants } from '../../components/ui/button'
+import { Skeleton } from '../../components/ui/skeleton'
 
 interface SearchTerm {
   name: string
@@ -41,7 +45,7 @@ function ErrorMessage({ code }: { code: ErrorCode }): JSX.Element {
           href="https://plausible.io/docs/google-search-console-integration#i-dont-see-google-search-query-data-in-my-dashboard"
           target="_blank"
           rel="noreferrer"
-          className="hover:underline text-indigo-700 dark:text-indigo-500"
+          className="text-primary hover:underline"
         >
           our documentation
         </a>{' '}
@@ -63,7 +67,7 @@ function ConfigureSearchTermsCTA({
       <div>Configure the integration to view search terms</div>
       <a
         href={`/${encodeURIComponent(site.domain)}/settings/integrations`}
-        className="button mt-4"
+        className={`${buttonVariants({ size: 'sm' })} mt-4`}
       >
         Connect with Google
       </a>
@@ -118,7 +122,7 @@ export function SearchTerms() {
     if (searchTerms && searchTerms.length > 0) {
       return (
         <React.Fragment>
-          <div className="flex items-center mt-3 mb-2 justify-between text-gray-500 dark:text-gray-400 text-xs font-bold tracking-wide">
+          <div className="mt-3 mb-2 flex items-center justify-between text-xs font-bold tracking-wide text-muted-foreground">
             <span>Search term</span>
             <span>Visitors</span>
           </div>
@@ -131,14 +135,14 @@ export function SearchTerms() {
                 <Bar
                   count={term.visitors}
                   all={searchTerms}
-                  bg="bg-blue-50 dark:bg-gray-500/15"
+                  bg="bg-chart-2/10"
                   maxWidthDeduction="4rem"
                 >
-                  <span className="flex px-2 py-1.5 dark:text-gray-300 z-9 relative break-all">
+                  <span className="relative z-9 flex break-all px-2 py-1.5 text-foreground">
                     <span className="md:truncate block">{term.name}</span>
                   </span>
                 </Bar>
-                <span className="font-medium dark:text-gray-200">
+                <span className="font-medium text-foreground">
                   {numberShortFormatter(term.visitors)}
                 </span>
               </div>
@@ -160,8 +164,8 @@ export function SearchTerms() {
   const renderNoDataYet = () => {
     if (searchTerms && searchTerms.length === 0) {
       return (
-        <div className="text-center text-gray-700 dark:text-gray-300 ">
-          <div className="mt-44 mx-auto font-medium text-gray-500 dark:text-gray-400">
+        <div className="text-center text-foreground">
+          <div className="mx-auto mt-44 font-medium text-muted-foreground">
             No data yet
           </div>
         </div>
@@ -174,12 +178,20 @@ export function SearchTerms() {
       const { is_admin, error_code } = errorPayload
 
       return (
-        <div className="text-center text-gray-700 dark:text-gray-300 text-sm mt-20">
-          <RocketIcon />
-          <ErrorMessage code={error_code} />
-          {error_code === 'not_configured' && is_admin && (
-            <ConfigureSearchTermsCTA site={site} />
-          )}
+        <div className="mt-20 text-sm">
+          <Alert className="mx-auto max-w-md text-left">
+            <DashboardIcon
+              icon={Rocket01Icon}
+              className="size-5 text-primary"
+            />
+            <AlertTitle>Search terms unavailable</AlertTitle>
+            <AlertDescription>
+              <ErrorMessage code={error_code} />
+              {error_code === 'not_configured' && is_admin && (
+                <ConfigureSearchTermsCTA site={site} />
+              )}
+            </AlertDescription>
+          </Alert>
         </div>
       )
     }
@@ -187,13 +199,11 @@ export function SearchTerms() {
 
   return (
     <div className="flex flex-col h-full">
-      <h3 className="font-bold dark:text-gray-100">Search Terms</h3>
+      <h3 className="font-bold text-foreground">Search Terms</h3>
       <div className="relative grow">
         {loading && (
           <div className="absolute inset-0 flex justify-center items-center">
-            <div className="loading">
-              <div />
-            </div>
+            <Skeleton className="size-16 rounded-full" />
           </div>
         )}
         <FadeIn show={!loading} className="grow">

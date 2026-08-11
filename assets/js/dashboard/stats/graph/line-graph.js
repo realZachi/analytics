@@ -61,6 +61,9 @@ class LineGraph extends React.Component {
       },
       options: {
         animation: false,
+        layout: {
+          padding: { top: 12, right: 4, bottom: 0, left: 0 }
+        },
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -74,7 +77,20 @@ class LineGraph extends React.Component {
         responsive: true,
         maintainAspectRatio: false,
         onResize: this.updateWindowDimensions,
-        elements: { line: { tension: 0 }, point: { radius: 0 } },
+        elements: {
+          line: {
+            borderCapStyle: 'round',
+            borderJoinStyle: 'round',
+            cubicInterpolationMode: 'monotone',
+            tension: 0.28
+          },
+          point: {
+            hitRadius: 16,
+            hoverBorderWidth: 3,
+            hoverRadius: 4,
+            radius: (context) => (Number(context.raw) > 0 ? 2 : 0)
+          }
+        },
         onClick: this.maybeHopToHoveredPeriod.bind(this),
         scale: {
           ticks: { precision: 0, maxTicksLimit: 8 }
@@ -85,16 +101,21 @@ class LineGraph extends React.Component {
             suggestedMax: calculateMaximumY(dataSet),
             ticks: {
               callback: MetricFormatterShort[metric],
-              color:
-                theme.mode === UIMode.dark ? 'rgb(161, 161, 170)' : undefined
-            },
-            grid: {
-              zeroLineColor: 'transparent',
-              drawBorder: false,
+              font: { family: 'Geist Variable', size: 11 },
+              padding: 12,
               color:
                 theme.mode === UIMode.dark
-                  ? 'rgba(39, 39, 42, 0.75)'
-                  : 'rgb(236, 236, 238)'
+                  ? 'rgb(161, 161, 170)'
+                  : 'rgb(113, 113, 122)'
+            },
+            grid: {
+              borderDash: [3, 4],
+              drawBorder: false,
+              drawTicks: false,
+              color:
+                theme.mode === UIMode.dark
+                  ? 'rgba(255, 255, 255, 0.08)'
+                  : 'rgba(24, 24, 27, 0.08)'
             }
           },
           yComparison: {
@@ -150,8 +171,14 @@ class LineGraph extends React.Component {
                   shouldShowYear
                 })(this.getLabelForValue(val))
               },
+              autoSkipPadding: 24,
+              font: { family: 'Geist Variable', size: 11 },
+              maxRotation: 0,
+              padding: 12,
               color:
-                theme.mode === UIMode.dark ? 'rgb(161, 161, 170)' : undefined
+                theme.mode === UIMode.dark
+                  ? 'rgb(161, 161, 170)'
+                  : 'rgb(113, 113, 122)'
             }
           }
         },
@@ -241,6 +268,11 @@ class LineGraph extends React.Component {
     const element = this.chart.getElementsAtEventForMode(e, 'index', {
       intersect: false
     })[0]
+
+    if (!element) {
+      return
+    }
+
     const date =
       this.props.graphData.labels[element.index] ||
       this.props.graphData.comparison_labels[element.index]
@@ -258,13 +290,13 @@ class LineGraph extends React.Component {
 
   render() {
     const { graphData } = this.props
-    const canvasClass = classNames('mt-4 select-none', {
+    const canvasClass = classNames('select-none', {
       'cursor-pointer': !['minute', 'hour'].includes(graphData?.interval)
     })
 
     return (
       <FadeIn show={graphData}>
-        <div className="relative h-96 print:h-auto print:pb-8 w-full z-0">
+        <div className="relative z-0 h-64 w-full pt-1 sm:h-72 lg:h-72 xl:h-80 print:h-auto print:pb-8">
           <canvas id="main-graph-canvas" className={canvasClass}></canvas>
         </div>
       </FadeIn>

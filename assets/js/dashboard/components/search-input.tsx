@@ -7,6 +7,7 @@ import React, {
 import { isModifierPressed, Keybind } from '../keybinding'
 import { useDebounce } from '../custom-hooks'
 import classNames from 'classnames'
+import { Input } from './ui/input'
 
 export const SearchInput = ({
   searchRef,
@@ -59,16 +60,13 @@ export const SearchInput = ({
         shouldIgnoreWhen={[isModifierPressed, () => isFocused]}
         targetRef="document"
       />
-      <input
+      <Input
         onBlur={() => setIsFocused(false)}
         onFocus={() => setIsFocused(true)}
         ref={searchRef}
         type="text"
         placeholder={isFocused ? placeholderFocused : placeholderUnfocused}
-        className={classNames(
-          'text-sm dark:text-gray-100 block border-gray-300 dark:border-gray-750 rounded-md dark:bg-gray-750 max-w-64 w-full dark:placeholder:text-gray-400 focus:outline-none focus:ring-3 focus:ring-indigo-500/20 dark:focus:ring-indigo-500/25 focus:border-indigo-500',
-          className
-        )}
+        className={classNames('block max-w-64 text-sm', className)}
         onChange={debouncedOnSearchInputChange}
       />
     </>

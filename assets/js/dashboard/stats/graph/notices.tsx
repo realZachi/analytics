@@ -1,5 +1,8 @@
 import React from 'react'
 import { Tooltip } from '../../util/tooltip'
+import { InformationCircleIcon } from '@hugeicons/core-free-icons'
+import { DashboardIcon } from '../../components/dashboard-icon'
+import { buttonVariants } from '../../components/ui/button'
 
 export const NoticesIcon = ({ notices }: { notices: string[] }) => {
   if (!notices.length) {
@@ -14,22 +17,19 @@ export const NoticesIcon = ({ notices }: { notices: string[] }) => {
           ))}
         </div>
       }
-      className="cursor-pointer w-4 h-4"
+      className="size-7"
     >
-      <svg
-        className="absolute w-4 h-4 dark:text-gray-300 text-gray-700"
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
+      <button
+        aria-label="Chart notices"
+        className={buttonVariants({
+          variant: 'ghost',
+          size: 'icon-sm',
+          className: 'text-muted-foreground hover:text-foreground'
+        })}
+        type="button"
       >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-        />
-      </svg>
+        <DashboardIcon icon={InformationCircleIcon} className="size-4" />
+      </button>
     </Tooltip>
   )
 }

@@ -1,4 +1,4 @@
-import React, { RefObject } from 'react'
+import React, { RefObject, useCallback, useState } from 'react'
 import { useQueryContext } from '../../query-context'
 import { useSiteContext } from '../../site-context'
 import {
@@ -11,19 +11,21 @@ import {
 import classNames from 'classnames'
 import { Tooltip } from '../../util/tooltip'
 import { SegmentAuthorship } from '../../segments/segment-authorship'
-import { SearchInput } from '../../components/search-input'
-import { EllipsisHorizontalIcon } from '@heroicons/react/24/solid'
-import { popover } from '../../components/popover'
 import { AppNavigationLink } from '../../navigation/use-app-navigate'
 import { MenuSeparator } from '../nav-menu-components'
 import { Role, useUserContext } from '../../user-context'
 import { useSegmentsContext } from '../../filtering/segments-context'
 import { useSearchableItems } from '../../hooks/use-searchable-items'
+import { MoreHorizontalIcon } from '@hugeicons/core-free-icons'
+import { isModifierPressed, Keybind } from '../../keybinding'
+import { useDebounce } from '../../custom-hooks'
+import { DashboardIcon } from '../../components/dashboard-icon'
+import { Button } from '../../components/ui/button'
+import { Input } from '../../components/ui/input'
 
 const linkClassName = classNames(
-  popover.items.classNames.navigationLink,
-  popover.items.classNames.selectedOption,
-  popover.items.classNames.hoverLink
+  'flex w-full items-center justify-between rounded-md px-3 py-2 text-sm font-medium text-foreground outline-none transition-colors',
+  'hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring/50'
 )
 
 const INITIAL_SEGMENTS_SHOWN = 5
@@ -75,11 +77,11 @@ export const SearchableSegmentsSection = ({
     <>
       <MenuSeparator />
       <div className="flex items-center py-2 px-4">
-        <div className="text-sm font-bold uppercase text-indigo-500 dark:text-indigo-400 mr-4">
+        <div className="mr-4 text-xs font-semibold uppercase tracking-wide text-primary">
           Segments
         </div>
         {showSearch && (
-          <SearchInput
+          <SegmentsSearchInput
             searchRef={searchRef}
             placeholderUnfocused="Press / to search"
             className="ml-auto w-full py-1"
@@ -88,7 +90,7 @@ export const SearchableSegmentsSection = ({
         )}
       </div>
 
-      <div className="max-h-[210px] overflow-y-scroll">
+      <div className="max-h-[210px] overflow-y-auto">
         {showableData.map((segment) => {
           return (
             <Tooltip
@@ -127,16 +129,19 @@ export const SearchableSegmentsSection = ({
             info={null}
             containerRef={tooltipContainerRef}
           >
-            <button
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
               className={classNames(
                 linkClassName,
-                'w-full text-left font-bold hover:text-indigo-700 dark:hover:text-indigo-500'
+                'h-auto justify-start py-2 font-bold text-primary hover:text-primary'
               )}
               onClick={handleShowAll}
             >
               {`Show ${countOfMoreToShow} more`}
-              <EllipsisHorizontalIcon className="block w-5 h-5" />
-            </button>
+              <DashboardIcon icon={MoreHorizontalIcon} className="size-5" />
+            </Button>
           </Tooltip>
         )}
       </div>
@@ -146,17 +151,71 @@ export const SearchableSegmentsSection = ({
           info={null}
           containerRef={tooltipContainerRef}
         >
-          <button
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
             className={classNames(
               linkClassName,
-              'w-full text-left font-bold hover:text-indigo-700 dark:hover:text-indigo-500'
+              'h-auto justify-start py-2 font-bold text-primary hover:text-primary'
             )}
             onClick={handleClearSearch}
           >
             No segments found. Clear search to show all.
-          </button>
+          </Button>
         </Tooltip>
       )}
+    </>
+  )
+}
+
+const SegmentsSearchInput = ({
+  searchRef,
+  onSearch,
+  className,
+  placeholderUnfocused
+}: {
+  searchRef: RefObject<HTMLInputElement>
+  onSearch: (value: string) => void
+  className?: string
+  placeholderUnfocused: string
+}) => {
+  const [isFocused, setIsFocused] = useState(false)
+  const debouncedSearch = useDebounce(onSearch)
+
+  const focusSearch = useCallback(
+    (event: KeyboardEvent) => {
+      searchRef.current?.focus()
+      event.stopPropagation()
+    },
+    [searchRef]
+  )
+
+  return (
+    <>
+      <Keybind
+        keyboardKey="Escape"
+        type="keyup"
+        handler={() => searchRef.current?.blur()}
+        shouldIgnoreWhen={[isModifierPressed, () => !isFocused]}
+        targetRef={searchRef}
+      />
+      <Keybind
+        keyboardKey="/"
+        type="keyup"
+        handler={focusSearch}
+        shouldIgnoreWhen={[isModifierPressed, () => isFocused]}
+        targetRef="document"
+      />
+      <Input
+        ref={searchRef}
+        type="search"
+        className={classNames('h-7 min-w-0 text-sm', className)}
+        placeholder={isFocused ? 'Search' : placeholderUnfocused}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+        onChange={(event) => debouncedSearch(event.target.value)}
+      />
     </>
   )
 }

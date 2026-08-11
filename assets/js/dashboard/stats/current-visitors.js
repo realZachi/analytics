@@ -7,6 +7,9 @@ import { useQueryContext } from '../query-context'
 import { useSiteContext } from '../site-context'
 import { useLastLoadContext } from '../last-load-context'
 import classNames from 'classnames'
+import { CircleIcon } from '@hugeicons/core-free-icons'
+import { DashboardIcon } from '../components/dashboard-icon'
+import { buttonVariants } from '../components/ui/button'
 
 export default function CurrentVisitors({
   className = '',
@@ -54,25 +57,26 @@ export default function CurrentVisitors({
       >
         <AppNavigationLink
           search={(prev) => ({ ...prev, period: 'realtime' })}
-          className={classNames(
-            'h-9 flex items-center text-xs md:text-sm font-bold text-gray-500 dark:text-gray-300',
-            className
-          )}
+          className={buttonVariants({
+            variant: 'ghost',
+            size: 'lg',
+            className: classNames(
+              'h-9 px-0 text-xs font-bold text-muted-foreground hover:text-foreground md:text-sm',
+              className
+            )
+          })}
         >
-          <svg
-            className="inline-block w-2 mr-1 text-green-500 fill-current"
-            viewBox="0 0 16 16"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <circle cx="8" cy="8" r="8" />
-          </svg>
-          <div className="inline-block">
+          <DashboardIcon
+            icon={CircleIcon}
+            className="mr-1 size-2 text-emerald-500"
+          />
+          <span>
             {currentVisitors}
             <span className="hidden lg:inline">
               {' '}
               current visitor{currentVisitors === 1 ? '' : 's'}
             </span>
-          </div>
+          </span>
         </AppNavigationLink>
       </Tooltip>
     )

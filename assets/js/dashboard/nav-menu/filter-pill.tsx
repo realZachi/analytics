@@ -3,8 +3,11 @@ import {
   AppNavigationLink,
   AppNavigationTarget
 } from '../navigation/use-app-navigate'
-import { XMarkIcon } from '@heroicons/react/20/solid'
 import classNames from 'classnames'
+import { Cancel01Icon } from '@hugeicons/core-free-icons'
+import { DashboardIcon } from '../components/dashboard-icon'
+import { Badge } from '../components/ui/badge'
+import { Button } from '../components/ui/button'
 
 export type FilterPillProps = {
   className?: string
@@ -35,9 +38,10 @@ export function FilterPill({
   const contentClassName = 'flex w-full h-full items-center py-2 pl-3 last:pr-3'
 
   return (
-    <div
+    <Badge
+      variant="outline"
       className={classNames(
-        'flex h-9 shadow rounded bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm items-center',
+        'flex h-9 max-w-full rounded-lg bg-card px-0 py-0 text-sm text-foreground shadow-sm',
         className
       )}
     >
@@ -51,13 +55,16 @@ export function FilterPill({
             <PillContent>{children}</PillContent>
           </AppNavigationLink>
           {!!interactive.onRemoveClick && (
-            <button
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
               title={`Remove filter: ${plainText}`}
-              className="flex items-center h-full px-2 mr-1 cursor-pointer hover:text-indigo-700 dark:hover:text-indigo-500 "
+              className="mr-1 h-full shrink-0 rounded-md text-muted-foreground hover:text-primary"
               onClick={interactive.onRemoveClick}
             >
-              <XMarkIcon className="w-4 h-4" />
-            </button>
+              <DashboardIcon icon={Cancel01Icon} className="size-4" />
+            </Button>
           )}
           {actions}
         </>
@@ -69,6 +76,6 @@ export function FilterPill({
           {actions}
         </>
       )}
-    </div>
+    </Badge>
   )
 }

@@ -15,6 +15,7 @@
     "^.+.[tj]sx?$": ["ts-jest", {}]
   },
   "moduleNameMapper": {
+    "^@/(.*)$": "<rootDir>/js/$1",
     "d3": "<rootDir>/node_modules/d3/dist/d3.min.js"
   }
 }

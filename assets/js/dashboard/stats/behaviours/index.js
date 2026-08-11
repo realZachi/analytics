@@ -12,6 +12,7 @@ import { useSiteContext } from '../../site-context'
 import { useQueryContext } from '../../query-context'
 import { useUserContext } from '../../user-context'
 import { DropdownTabButton, TabButton, TabWrapper } from '../../components/tabs'
+import { Card } from '../../components/ui/card'
 
 /*global BUILD_EXTRA*/
 /*global require*/
@@ -229,7 +230,7 @@ export default function Behaviours({ importedDataInView }) {
 
   function noDataYet() {
     return (
-      <div className="font-medium text-gray-500 dark:text-gray-400 py-12 text-center">
+      <div className="py-12 text-center font-medium text-muted-foreground">
         No data yet
       </div>
     )
@@ -237,7 +238,7 @@ export default function Behaviours({ importedDataInView }) {
 
   function featureUnavailable() {
     return (
-      <div className="font-medium text-gray-500 dark:text-gray-400 py-12 text-center">
+      <div className="py-12 text-center font-medium text-muted-foreground">
         This feature is unavailable
       </div>
     )
@@ -347,10 +348,10 @@ export default function Behaviours({ importedDataInView }) {
 
   return (
     <div className="items-start justify-between block w-full mt-6 md:flex relative">
-      <div className="w-full p-4 bg-white rounded-md shadow-sm dark:bg-gray-900">
+      <Card className="w-full gap-0 overflow-visible p-4 shadow-sm">
         <div className="flex justify-between w-full">
           <div className="flex gap-x-1">
-            <h3 className="font-bold dark:text-gray-100">
+            <h3 className="font-bold text-foreground">
               {sectionTitle() + (isRealtime() ? ' (last 30min)' : '')}
             </h3>
             {renderImportedQueryUnsupportedWarning()}
@@ -397,7 +398,7 @@ export default function Behaviours({ importedDataInView }) {
           </TabWrapper>
         </div>
         {renderContent()}
-      </div>
+      </Card>
     </div>
   )
 }

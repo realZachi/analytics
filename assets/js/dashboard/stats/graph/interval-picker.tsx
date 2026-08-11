@@ -1,17 +1,22 @@
-import React, { useRef } from 'react'
-import { Popover, Transition } from '@headlessui/react'
-import { ChevronDownIcon } from '@heroicons/react/20/solid'
-import classNames from 'classnames'
+import React, { useRef, useState } from 'react'
+import { ArrowDown01Icon } from '@hugeicons/core-free-icons'
 import * as storage from '../../util/storage'
 import { isModifierPressed, isTyping, Keybind } from '../../keybinding'
 import { useQueryContext } from '../../query-context'
 import { useSiteContext, PlausibleSite } from '../../site-context'
 import { useMatch } from 'react-router-dom'
 import { rootRoute } from '../../router'
-import { BlurMenuButtonOnEscape, popover } from '../../components/popover'
+import { BlurMenuButtonOnEscape } from '../../nav-menu/blur-menu-button-on-escape'
 import { DashboardQuery } from '../../query'
 import { Dayjs } from 'dayjs'
 import { QueryPeriod } from '../../query-time-periods'
+import { DashboardIcon } from '../../components/dashboard-icon'
+import { Button } from '../../components/ui/button'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from '../../components/ui/popover'
 
 const INTERVAL_LABELS: Record<string, string> = {
   minute: 'Minutes',
@@ -102,6 +107,7 @@ export function IntervalPicker({
   onIntervalUpdate: (interval: string) => void
 }): JSX.Element | null {
   const menuElement = useRef<HTMLButtonElement>(null)
+  const [open, setOpen] = useState(false)
   const { query } = useQueryContext()
   const site = useSiteContext()
   const dashboardRouteMatch = useMatch(rootRoute.path)
@@ -131,58 +137,36 @@ export function IntervalPicker({
           shouldIgnoreWhen={[isModifierPressed, isTyping]}
         />
       )}
-      <Popover className="relative inline-block">
-        {({ close: closeDropdown }) => (
-          <>
-            <BlurMenuButtonOnEscape targetRef={menuElement} />
-            <Popover.Button
-              ref={menuElement}
-              className={classNames(
-                popover.toggleButton.classNames.linkLike,
-                'rounded-sm text-sm flex items-center'
-              )}
-            >
-              {INTERVAL_LABELS[currentInterval]}
-              <ChevronDownIcon className="ml-1 h-4 w-4" aria-hidden="true" />
-            </Popover.Button>
+      <div className="relative inline-block">
+        <Popover open={open} onOpenChange={setOpen}>
+          <BlurMenuButtonOnEscape targetRef={menuElement} />
+          <PopoverTrigger
+            ref={menuElement}
+            render={<Button variant="ghost" size="sm" className="h-7" />}
+          >
+            {INTERVAL_LABELS[currentInterval]}
+            <DashboardIcon icon={ArrowDown01Icon} className="size-3.5" />
+          </PopoverTrigger>
 
-            <Transition
-              as="div"
-              {...popover.transition.props}
-              className={classNames(
-                popover.transition.classNames.right,
-                'mt-2 w-56'
-              )}
-            >
-              <Popover.Panel
-                className={classNames(
-                  popover.panel.classNames.roundedSheet,
-                  'font-normal'
-                )}
+          <PopoverContent align="end" className="w-56 gap-0.5 p-1 font-normal">
+            {options.map((option) => (
+              <Button
+                key={option}
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  updateInterval(option)
+                  setOpen(false)
+                }}
+                data-selected={option == currentInterval}
+                className="w-full justify-start font-normal data-[selected=true]:bg-muted data-[selected=true]:font-semibold"
               >
-                {options.map((option) => (
-                  <button
-                    key={option}
-                    onClick={() => {
-                      updateInterval(option)
-                      closeDropdown()
-                    }}
-                    data-selected={option == currentInterval}
-                    className={classNames(
-                      popover.items.classNames.navigationLink,
-                      popover.items.classNames.selectedOption,
-                      popover.items.classNames.hoverLink,
-                      'w-full text-left'
-                    )}
-                  >
-                    {INTERVAL_LABELS[option]}
-                  </button>
-                ))}
-              </Popover.Panel>
-            </Transition>
-          </>
-        )}
-      </Popover>
+                {INTERVAL_LABELS[option]}
+              </Button>
+            ))}
+          </PopoverContent>
+        </Popover>
+      </div>
     </>
   )
 }

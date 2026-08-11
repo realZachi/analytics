@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import React, { useState } from 'react'
 
 import {
   FILTER_OPERATIONS,
@@ -7,14 +7,15 @@ import {
   supportsIsNot,
   supportsHasDoneNot
 } from '../util/filters'
-import { Transition, Popover } from '@headlessui/react'
-import { ChevronDownIcon } from '@heroicons/react/20/solid'
 import classNames from 'classnames'
-import { popover, BlurMenuButtonOnEscape } from './popover'
+import { ArrowDown01Icon } from '@hugeicons/core-free-icons'
+import { DashboardIcon } from './dashboard-icon'
+import { Button } from './ui/button'
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 
 export default function FilterOperatorSelector(props) {
   const filterName = props.forFilter
-  const buttonRef = useRef()
+  const [open, setOpen] = useState(false)
 
   return (
     <div
@@ -22,70 +23,54 @@ export default function FilterOperatorSelector(props) {
         'opacity-20 cursor-default pointer-events-none': props.isDisabled
       })}
     >
-      <Popover className="relative w-full">
-        {({ close: closeDropdown }) => (
-          <>
-            <BlurMenuButtonOnEscape targetRef={buttonRef} />
-            <Popover.Button
-              ref={buttonRef}
-              className="relative flex justify-between items-center w-full rounded-md border border-gray-300 dark:border-gray-750 px-4 py-2 bg-white dark:bg-gray-750 text-sm text-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 dark:focus:ring-offset-gray-900 focus:ring-indigo-500 text-left"
-            >
-              {FILTER_OPERATIONS_DISPLAY_NAMES[props.selectedType]}
-              <ChevronDownIcon
-                className="-mr-2 ml-2 h-4 w-4 text-gray-500 dark:text-gray-400"
-                aria-hidden="true"
-              />
-            </Popover.Button>
-            <Transition
-              as="div"
-              {...popover.transition.props}
-              className={classNames(popover.transition.classNames.left, 'mt-2')}
-            >
-              <Popover.Panel
-                className={classNames(
-                  popover.panel.classNames.roundedSheet,
-                  'font-normal'
-                )}
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger
+          render={
+            <Button
+              className="w-full justify-between font-normal"
+              variant="outline"
+            />
+          }
+        >
+          {FILTER_OPERATIONS_DISPLAY_NAMES[props.selectedType]}
+          <DashboardIcon
+            icon={ArrowDown01Icon}
+            className="size-4 text-muted-foreground"
+          />
+        </PopoverTrigger>
+        <PopoverContent
+          align="start"
+          className="w-(--anchor-width) min-w-44 gap-0.5 p-1"
+        >
+          {[
+            [FILTER_OPERATIONS.is, true],
+            [FILTER_OPERATIONS.isNot, supportsIsNot(filterName)],
+            [FILTER_OPERATIONS.has_not_done, supportsHasDoneNot(filterName)],
+            [FILTER_OPERATIONS.contains, supportsContains(filterName)],
+            [
+              FILTER_OPERATIONS.contains_not,
+              supportsContains(filterName) && supportsIsNot(filterName)
+            ]
+          ]
+            .filter(([_operation, supported]) => supported)
+            .map(([operation]) => (
+              <Button
+                variant="ghost"
+                key={operation}
+                data-selected={operation === props.selectedType}
+                onClick={(e) => {
+                  // Prevent the click propagating and closing modal
+                  e.preventDefault()
+                  e.stopPropagation()
+                  props.onSelect(operation)
+                  setOpen(false)
+                }}
+                className="w-full justify-start font-normal data-[selected=true]:bg-muted data-[selected=true]:font-medium"
               >
-                {[
-                  [FILTER_OPERATIONS.is, true],
-                  [FILTER_OPERATIONS.isNot, supportsIsNot(filterName)],
-                  [
-                    FILTER_OPERATIONS.has_not_done,
-                    supportsHasDoneNot(filterName)
-                  ],
-                  [FILTER_OPERATIONS.contains, supportsContains(filterName)],
-                  [
-                    FILTER_OPERATIONS.contains_not,
-                    supportsContains(filterName) && supportsIsNot(filterName)
-                  ]
-                ]
-                  .filter(([_operation, supported]) => supported)
-                  .map(([operation]) => (
-                    <button
-                      key={operation}
-                      data-selected={operation === props.selectedType}
-                      onClick={(e) => {
-                        // Prevent the click propagating and closing modal
-                        e.preventDefault()
-                        e.stopPropagation()
-                        props.onSelect(operation)
-                        closeDropdown()
-                      }}
-                      className={classNames(
-                        'w-full text-left ',
-                        popover.items.classNames.navigationLink,
-                        popover.items.classNames.selectedOption,
-                        popover.items.classNames.hoverLink
-                      )}
-                    >
-                      {FILTER_OPERATIONS_DISPLAY_NAMES[operation]}
-                    </button>
-                  ))}
-              </Popover.Panel>
-            </Transition>
-          </>
-        )}
+                {FILTER_OPERATIONS_DISPLAY_NAMES[operation]}
+              </Button>
+            ))}
+        </PopoverContent>
       </Popover>
     </div>
   )

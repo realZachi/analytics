@@ -1,5 +1,4 @@
 import React, { useMemo, useRef } from 'react'
-import classNames from 'classnames'
 import { useQueryContext } from '../../query-context'
 import { useSiteContext } from '../../site-context'
 import {
@@ -23,19 +22,24 @@ import {
 } from '../../query-time-periods'
 import { useMatch } from 'react-router-dom'
 import { rootRoute } from '../../router'
-import { Popover, Transition } from '@headlessui/react'
-import { popover, BlurMenuButtonOnEscape } from '../../components/popover'
+import { BlurMenuButtonOnEscape } from '../blur-menu-button-on-escape'
+import { buttonVariants } from '../../components/ui/button'
+import { Popover, PopoverTrigger } from '../../components/ui/popover'
 import {
   datemenuButtonClassName,
   DateMenuChevron,
-  PopoverMenuProps,
-  linkClassName,
   CalendarPanel,
   hiddenCalendarButtonClassName
 } from './shared-menu-items'
 import { DateRangeCalendar } from './date-range-calendar'
 import { formatISO, nowForSite } from '../../util/date'
 import { MenuSeparator } from '../nav-menu-components'
+
+type QueryPeriodMenuProps = {
+  open: boolean
+  setOpen: (open: boolean) => void
+  openCalendar: () => void
+}
 
 function QueryPeriodMenuKeybinds({
   closeDropdown,
@@ -50,6 +54,7 @@ function QueryPeriodMenuKeybinds({
   if (!dashboardRouteMatch) {
     return null
   }
+
   return (
     <>
       {groups.flatMap((group) =>
@@ -60,12 +65,12 @@ function QueryPeriodMenuKeybinds({
               key={keyboardKey}
               keyboardKey={keyboardKey}
               type="keydown"
-              handler={(e) => {
+              handler={(event) => {
                 if (typeof search === 'function') {
                   navigate({ search })
                 }
                 if (typeof onEvent === 'function') {
-                  onEvent(e)
+                  onEvent(event)
                 } else {
                   closeDropdown()
                 }
@@ -80,39 +85,51 @@ function QueryPeriodMenuKeybinds({
 }
 
 export const QueryPeriodMenu = ({
-  closeDropdown,
-  calendarButtonRef
-}: PopoverMenuProps) => {
+  open,
+  setOpen,
+  openCalendar
+}: QueryPeriodMenuProps) => {
   const site = useSiteContext()
   const { query } = useQueryContext()
-  const buttonRef = useRef<HTMLButtonElement>(null)
-  const toggleCalendar = () => {
-    if (typeof calendarButtonRef.current?.click === 'function') {
-      calendarButtonRef.current.click()
-    }
-  }
+  const buttonRef = useRef<HTMLButtonElement | null>(null)
+  const closeDropdown = () => setOpen(false)
 
   return (
-    <>
+    <Popover open={open} onOpenChange={setOpen}>
       <BlurMenuButtonOnEscape targetRef={buttonRef} />
-      <Popover.Button ref={buttonRef} className={datemenuButtonClassName}>
-        <span className={popover.toggleButton.classNames.truncatedText}>
+      <PopoverTrigger
+        onFocus={(event) => {
+          buttonRef.current = event.currentTarget
+        }}
+        className={buttonVariants({
+          variant: 'outline',
+          size: 'lg',
+          className: datemenuButtonClassName
+        })}
+      >
+        <span className="block truncate">
           {getCurrentPeriodDisplayName({ query, site })}
         </span>
         <DateMenuChevron />
-      </Popover.Button>
+      </PopoverTrigger>
       <QueryPeriodMenuInner
-        toggleCalendar={toggleCalendar}
+        open={open}
         closeDropdown={closeDropdown}
+        toggleCalendar={() => {
+          closeDropdown()
+          openCalendar()
+        }}
       />
-    </>
+    </Popover>
   )
 }
 
 const QueryPeriodMenuInner = ({
+  open,
   closeDropdown,
   toggleCalendar
 }: {
+  open: boolean
   closeDropdown: () => void
   toggleCalendar: () => void
 }) => {
@@ -125,6 +142,7 @@ const QueryPeriodMenuInner = ({
       query,
       onEvent: closeDropdown
     })
+
     return getDatePeriodGroups({
       site,
       onEvent: closeDropdown,
@@ -132,7 +150,7 @@ const QueryPeriodMenuInner = ({
         [
           ['Custom Range', 'C'],
           {
-            search: (s) => s,
+            search: (search) => search,
             isActive: ({ query }) => query.period === QueryPeriod.custom,
             onEvent: toggleCalendar
           }
@@ -150,33 +168,27 @@ const QueryPeriodMenuInner = ({
   return (
     <>
       <QueryPeriodMenuKeybinds closeDropdown={closeDropdown} groups={groups} />
-      <Transition
-        as="div"
-        {...popover.transition.props}
-        className={classNames(
-          popover.transition.classNames.fullwidth,
-          'mt-2 md:w-56 md:left-auto md:origin-top-right'
-        )}
-      >
-        <Popover.Panel
-          className={popover.panel.classNames.roundedSheet}
-          data-testid="datemenu"
-        >
-          {groups.map((group, index) => (
-            <React.Fragment key={index}>
-              {group.map(
-                ([
-                  [label, keyboardKey],
-                  { search, isActive, onEvent, hidden }
-                ]) => {
-                  if (!hidden) {
+      {open && (
+        <CalendarPanel className="w-56 p-1">
+          <div data-testid="datemenu">
+            {groups.map((group, index) => (
+              <React.Fragment key={index}>
+                {group.map(
+                  ([
+                    [label, keyboardKey],
+                    { search, isActive, onEvent, hidden }
+                  ]) => {
+                    if (hidden) {
+                      return null
+                    }
+
                     return (
                       <AppNavigationLink
                         key={label}
                         data-selected={isActive({ site, query })}
-                        className={linkClassName}
+                        className="flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium text-foreground outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring/50 data-[selected=true]:bg-accent data-[selected=true]:font-semibold"
                         search={search}
-                        onClick={onEvent && ((e) => onEvent(e))}
+                        onClick={onEvent && ((event) => onEvent(event))}
                       >
                         {label}
                         {!!keyboardKey && (
@@ -185,51 +197,62 @@ const QueryPeriodMenuInner = ({
                       </AppNavigationLink>
                     )
                   }
-                }
-              )}
-              {index < groups.length - 1 && <MenuSeparator />}
-            </React.Fragment>
-          ))}
-        </Popover.Panel>
-      </Transition>
+                )}
+                {index < groups.length - 1 && <MenuSeparator />}
+              </React.Fragment>
+            ))}
+          </div>
+        </CalendarPanel>
+      )}
     </>
   )
 }
 
 export const MainCalendar = ({
-  closeDropdown,
-  calendarButtonRef
-}: PopoverMenuProps) => {
+  open,
+  setOpen
+}: {
+  open: boolean
+  setOpen: (open: boolean) => void
+}) => {
   const site = useSiteContext()
   const { query } = useQueryContext()
   const navigate = useAppNavigate()
+  const calendarButtonRef = useRef<HTMLButtonElement | null>(null)
 
   return (
-    <>
-      <BlurMenuButtonOnEscape targetRef={calendarButtonRef} />
-      <Popover.Button
-        className={hiddenCalendarButtonClassName}
-        tabIndex={-1}
-        ref={calendarButtonRef}
-      />
-      <CalendarPanel className="mt-2">
-        <DateRangeCalendar
-          id="calendar"
-          onCloseWithSelection={(selection) => {
-            navigate({
-              search: getSearchToApplyCustomDates(selection)
-            })
-            closeDropdown()
+    <div className="relative h-9 w-0">
+      <Popover open={open} onOpenChange={setOpen}>
+        <BlurMenuButtonOnEscape targetRef={calendarButtonRef} />
+        <PopoverTrigger
+          aria-label="Choose custom date range"
+          tabIndex={-1}
+          onFocus={(event) => {
+            calendarButtonRef.current = event.currentTarget
           }}
-          minDate={site.statsBegin}
-          maxDate={formatISO(nowForSite(site))}
-          defaultDates={
-            query.from && query.to
-              ? [formatISO(query.from), formatISO(query.to)]
-              : undefined
-          }
+          className={hiddenCalendarButtonClassName}
         />
-      </CalendarPanel>
-    </>
+        {open && (
+          <CalendarPanel>
+            <DateRangeCalendar
+              id="calendar"
+              onCloseWithSelection={(selection) => {
+                navigate({
+                  search: getSearchToApplyCustomDates(selection)
+                })
+                setOpen(false)
+              }}
+              minDate={site.statsBegin}
+              maxDate={formatISO(nowForSite(site))}
+              defaultDates={
+                query.from && query.to
+                  ? [formatISO(query.from), formatISO(query.to)]
+                  : undefined
+              }
+            />
+          </CalendarPanel>
+        )}
+      </Popover>
+    </div>
   )
 }

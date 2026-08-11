@@ -1,5 +1,6 @@
-import React, { useLayoutEffect, useRef } from 'react'
-import DatePicker from 'react-flatpickr'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import type { DateRange } from 'react-day-picker'
+import { Calendar } from '../../components/ui/calendar'
 
 export interface DateRangeCalendarProps {
   id: string
@@ -10,6 +11,20 @@ export interface DateRangeCalendarProps {
   onCloseWithSelection?: ([selectionStart, selectionEnd]: [Date, Date]) => void
 }
 
+const parseDate = (value?: string): Date | undefined =>
+  value ? new Date(`${value}T00:00:00`) : undefined
+
+const rangeFromDefaultDates = (
+  defaultDates?: [string, string]
+): DateRange | undefined => {
+  if (!defaultDates) {
+    return undefined
+  }
+
+  const [from, to] = defaultDates.map(parseDate)
+  return from && to ? { from, to } : undefined
+}
+
 export function DateRangeCalendar({
   id,
   minDate,
@@ -18,47 +33,46 @@ export function DateRangeCalendar({
   onCloseWithNoSelection,
   onCloseWithSelection
 }: DateRangeCalendarProps) {
-  const hideInputFieldClassName = '!invisible !h-0 !w-0 !p-0 !m-0 !border-0'
-  const calendarRef = useRef<DatePicker>(null)
-  useLayoutEffect(() => {
-    // on Safari, this removes little arrow pointing to (hidden) input,
-    // which didn't appear with other browsers
-    calendarRef.current?.flatpickr?.calendarContainer?.classList.remove(
-      'arrowTop',
-      'arrowBottom',
-      'arrowLeft',
-      'arrowRight'
-    )
-  }, [])
-  return (
-    <DatePicker
-      ref={calendarRef}
-      className={hideInputFieldClassName}
-      id={id}
-      options={{
-        animate: false,
-        inline: true,
-        mode: 'range',
-        maxDate,
-        minDate,
-        defaultDate: defaultDates,
-        showMonths: 1
-      }}
-      onClose={
-        onCloseWithSelection || onCloseWithNoSelection
-          ? ([selectionStart, selectionEnd]) => {
-              if (selectionStart && selectionEnd) {
-                if (onCloseWithSelection) {
-                  onCloseWithSelection([selectionStart, selectionEnd])
-                }
-              } else {
-                if (onCloseWithNoSelection) {
-                  onCloseWithNoSelection()
-                }
-              }
-            }
-          : undefined
+  const [selected, setSelected] = useState<DateRange | undefined>(() =>
+    rangeFromDefaultDates(defaultDates)
+  )
+  const completedSelectionRef = useRef(false)
+  const min = useMemo(() => parseDate(minDate), [minDate])
+  const max = useMemo(() => parseDate(maxDate), [maxDate])
+
+  useEffect(() => {
+    setSelected(rangeFromDefaultDates(defaultDates))
+    completedSelectionRef.current = false
+  }, [defaultDates])
+
+  useEffect(
+    () => () => {
+      if (!completedSelectionRef.current) {
+        onCloseWithNoSelection?.()
       }
+    },
+    [onCloseWithNoSelection]
+  )
+
+  return (
+    <Calendar
+      id={id}
+      mode="range"
+      selected={selected}
+      resetOnSelect
+      onSelect={(range) => {
+        setSelected(range)
+        if (range?.from && range.to) {
+          completedSelectionRef.current = true
+          onCloseWithSelection?.([range.from, range.to])
+        }
+      }}
+      disabled={[
+        ...(min ? [{ before: min }] : []),
+        ...(max ? [{ after: max }] : [])
+      ]}
+      defaultMonth={selected?.from ?? min}
+      numberOfMonths={1}
     />
   )
 }

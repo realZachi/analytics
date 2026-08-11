@@ -70,7 +70,7 @@ export default function Referrers({ source }) {
   return (
     <div className="flex flex-col grow">
       <div className="flex gap-x-1">
-        <h3 className="font-bold dark:text-gray-100">Top Referrers</h3>
+        <h3 className="font-bold text-foreground">Top Referrers</h3>
         <ImportedQueryUnsupportedWarning
           loading={loading}
           skipImportedReason={skipImportedReason}
@@ -89,7 +89,7 @@ export default function Referrers({ source }) {
         }}
         getExternalLinkUrl={getExternalLinkUrl}
         renderIcon={renderIcon}
-        color="bg-blue-50"
+        color="bg-chart-2/10 group-hover/row:bg-chart-2/20"
       />
     </div>
   )
